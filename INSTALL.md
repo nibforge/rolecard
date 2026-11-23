@@ -2,6 +2,16 @@
 
 [Instalación en español](INSTALACION.md) · [README](README.md) · [Full guide](docs/guide.en.md)
 
+## Easy way: download and double-click
+
+1. Install Python 3.12 or newer from [python.org](https://www.python.org/downloads/).
+2. Download [rolecard.zip](https://github.com/nibforge/rolecard/releases/latest/download/rolecard.zip) and unzip it.
+3. Double-click `Iniciar rolecard.bat` (Windows) or `Iniciar rolecard.command` (macOS),
+   or run `start.sh` (Linux).
+
+Each step, one click at a time, in [Install without the terminal](docs/install.en.md).
+The rest of this page is for developers.
+
 ## Requirements
 - Python 3.12 or later.
 - An AI provider (optional to get started): see [Use your own AI](docs/ai.en.md).

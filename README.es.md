@@ -2,14 +2,28 @@
 
 [English](README.md) · [Guía](docs/guide.es.md) · [Usa tu propia IA](docs/ai.es.md)
 
+**No hace falta saber programar: descárgala, haz doble clic y úsala en tu navegador.**
+[Guía paso a paso](docs/install.es.md)
+
 Un asistente local y privado para buscar empleo. Subes tu CV una vez, añades ofertas y
 rolecard puntúa cuánto encaja cada una contigo y sigue cada candidatura en un tablero.
 Para cada oferta prepara un CV y una carta adaptados en los que cada frase muestra el
 hecho de tu perfil del que sale; tú los revisas y exportas un PDF a una columna.
 
+## Descargar
+
+1. Instala Python 3.12 o posterior desde [python.org](https://www.python.org/downloads/), una vez.
+2. Descarga **[rolecard.zip](https://github.com/nibforge/rolecard/releases/latest/download/rolecard.zip)** y descomprímelo.
+3. Haz doble clic en `Iniciar rolecard.bat` (Windows) o `Iniciar rolecard.command`
+   (macOS); en Linux, ejecuta `start.sh`. La primera vez se prepara durante unos
+   minutos; después rolecard se abre en tu navegador.
+
+La [guía paso a paso](docs/install.es.md) explica cada clic, los avisos de seguridad que
+puedes ver, cómo cerrar rolecard y cómo actualizar sin perder tus datos.
+
 ![Una oferta puntuada según tu perfil: lo que cumples y lo que falta](docs/img/es/offer.png)
 
-> **Estado:** desarrollo temprano (0.1.0). Aún no está publicado en PyPI.
+> **Estado:** desarrollo temprano (0.1.1). Aún no está publicado en PyPI.
 
 ## Principios
 
@@ -22,7 +36,7 @@ hecho de tu perfil del que sale; tú los revisas y exportas un PDF a una columna
 - **Local y privado.** Tus datos viven en una carpeta de tu equipo, el servidor solo
   escucha en `127.0.0.1` y no hay telemetría.
 
-## Instalar
+## Para desarrolladores: clonar el repo
 
 Necesita Python 3.12 o posterior.
 

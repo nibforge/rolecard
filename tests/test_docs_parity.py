@@ -18,7 +18,8 @@ def test_every_file_named_exists(doc):
 
 
 PAIRS = [("README.md", "README.es.md"), ("docs/guide.en.md", "docs/guide.es.md"),
-         ("docs/ai.en.md", "docs/ai.es.md"), ("INSTALL.md", "INSTALACION.md")]
+         ("docs/ai.en.md", "docs/ai.es.md"), ("INSTALL.md", "INSTALACION.md"),
+         ("docs/install.en.md", "docs/install.es.md")]
 PUBLIC = [doc for pair in PAIRS for doc in pair] + ["docs/index.md"]
 _HEADING = re.compile(r"^(#+) ", re.M)
 _LINK = re.compile(r"(!?)\[[^\]]*\]\(([^)\s]+)\)")

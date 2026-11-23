@@ -536,5 +536,10 @@
   "date.month.9": "sep",
   "date.month.10": "oct",
   "date.month.11": "nov",
-  "date.month.12": "dic"
+  "date.month.12": "dic",
+  "console.running": "rolecard está abierto en tu navegador en {url}. No cierres esta ventana mientras lo uses. Para salir, ciérrala o pulsa Salir en la app.",
+  "console.already_running": "rolecard ya está en marcha en {url}. Lo abro en tu navegador.",
+  "nav.quit": "Salir",
+  "quit.title": "rolecard se ha cerrado",
+  "quit.done": "rolecard se ha cerrado. Ya puedes cerrar esta pestaña."
 }

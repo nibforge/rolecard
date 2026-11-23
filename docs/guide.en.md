@@ -9,6 +9,9 @@ fictional demo data (`scripts/demo_data.py`), never a real CV.
 
 ## 1. Install and start
 
+If you prefer not to use a terminal, follow
+[Install without the terminal](install.en.md) instead and skip to the next section.
+
 You need Python 3.12 or newer.
 
 ```

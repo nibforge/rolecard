@@ -24,6 +24,7 @@
       {% endfor %}
       <div class="spacer"></div>
       {% if has_settings %}<a class="rc-nav" href="{{ url_for('settings.edit') }}"{% if active == 'settings' %} aria-current="page"{% endif %}>{{ icon('settings') }}{{ t('nav.settings') }}</a>{% endif %}
+      <form class="rc-quit" method="post" action="{{ url_for('system.quit_app') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="rc-nav">{{ icon('logout') }}{{ t('nav.quit') }}</button></form>
     </nav>
     <main id="principal" class="rc-main">
       <header class="rc-header">

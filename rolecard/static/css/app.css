@@ -197,6 +197,8 @@ a.rc-col__more{display:flex;align-items:center;justify-content:center;text-decor
 .rc-nav[aria-current]{background:var(--surface-hover);color:var(--text)}
 .rc-nav svg{width:16px;height:16px;flex:none}
 .rc-nav .rc-count{margin-left:auto;background:transparent}
+.rc-quit{margin:0}.rc-quit .rc-nav{width:100%;border:0;background:none;font:inherit;cursor:pointer}
+.rc-closed{max-width:32rem;margin:20vh auto;padding:0 16px;text-align:center}
 .rc-nav-group{font-size:11px;font-weight:500;color:var(--text-subtle);padding:12px 8px 4px}
 .rc-main{flex:999 1 560px;min-width:0;background:var(--surface);margin:6px 6px 6px 0;border:1px solid var(--border);border-radius:var(--radius-lg)}
 .rc-header{display:flex;align-items:center;gap:var(--space-2);height:44px;padding:0 var(--space-4);border-bottom:1px solid var(--border)}

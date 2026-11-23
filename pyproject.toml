@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rolecard"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local, private job-search assistant: score offers against your CV, tailor applications and track them."
 readme = "README.md"
 license = "MIT"

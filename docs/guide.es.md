@@ -9,6 +9,9 @@ candidatura. Las capturas usan los datos ficticios de demostración
 
 ## 1. Instalar y arrancar
 
+Si prefieres no usar la terminal, sigue
+[Instalar sin usar la terminal](install.es.md) y pasa a la sección siguiente.
+
 Necesitas Python 3.12 o posterior.
 
 ```

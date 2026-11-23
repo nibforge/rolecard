@@ -15,7 +15,7 @@ from rolecard.logs import init_logging
 from rolecard.security import init_security
 from rolecard.services.jobs import backfill_match_keys
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 DEFAULT_PORT = 8765
 _TRANSLATED_ERRORS = (400, 404, 413, 500)
@@ -78,10 +78,11 @@ def _register_blueprints(app: Flask) -> None:
         profile,
         search,
         settings,
+        system,
     )
 
     init_views(app)
-    for module in (dashboard, board, search, jobs, documents, profile, settings):
+    for module in (dashboard, board, search, jobs, documents, profile, settings, system):
         app.register_blueprint(module.bp)
 
 
