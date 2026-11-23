@@ -1,0 +1,7 @@
+{% if test %}
+{% if test.ok %}
+<div class="alerta alerta-exito" role="status">{{ t(test.key, provider=t('ai.provider.' ~ test.provider)) }}</div>
+{% else %}
+<div class="alerta alerta-error" role="alert">{{ t(test.key) }}</div>
+{% endif %}
+{% endif %}

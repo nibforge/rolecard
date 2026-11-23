@@ -1,0 +1,51 @@
+{% from "_macros.html" import csrf_field, score_badge %}
+{% set summary = search.last_summary %}
+<section class="rc-panel" aria-labelledby="summary-title">
+  <div class="rc-panel__head">
+    <h2 id="summary-title" class="rc-panel__title">{% if summary %}{{ t('search.summary', at=summary.at | isolocaltime) }}{% else %}{{ t('search.never_run') }}{% endif %}</h2>
+    {% if unscored %}<span class="rc-badge rc-badge--accent">{{ t('search.new_count', count=unscored) }}</span>{% endif %}
+    {% if unscored %}
+    <div class="end">
+      <form method="post" action="{{ url_for('search.score_added', search_id=search.id) }}">
+        {{ csrf_field() }}<button class="rc-btn rc-btn--sm rc-btn--primary" type="submit">{{ t('search.score_added', count=[unscored, 5] | min) }}</button>
+      </form>
+      <form method="post" action="{{ url_for('search.discard_unscored', search_id=search.id) }}" data-confirm="{{ t('search.discard_confirm', count=unscored) }}">
+        {{ csrf_field() }}<button class="rc-btn rc-btn--sm" type="submit">{{ t('search.discard_unscored', count=unscored) }}</button>
+      </form>
+      <a class="rc-btn rc-btn--sm rc-btn--ghost" href="{{ url_for('board.index', unscored=1) }}">{{ t('search.to_board') }}</a>
+    </div>
+    {% endif %}
+  </div>
+  {% if summary %}
+  <p class="rc-panel__body rc-muted">{{ t('search.added_total', count=summary.added) }}</p>
+  <div class="rc-table-scroll"><table class="rc-table">
+    <thead><tr><th scope="col">{{ t('search.col.source') }}</th><th scope="col">{{ t('search.col.status') }}</th><th scope="col" class="num">{{ t('search.col.received') }}</th><th scope="col" class="num">{{ t('search.col.duplicates') }}</th><th scope="col" class="num">{{ t('search.col.discarded') }}</th><th scope="col" class="num">{{ t('search.col.added') }}</th></tr></thead>
+    <tbody>
+    {% for row in summary.sources %}
+    <tr>
+      <th scope="row" class="title">{{ row.label }}</th>
+      <td class="rc-wrap">{% if row.status == 'ok' %}<span class="rc-badge rc-badge--success">{{ t('search.status.ok') }}</span>{% elif row.status == 'error' %}<span class="rc-badge rc-badge--danger">{{ t('search.error_code.' ~ row.error) }}</span>{% elif row.status == 'rate_limited' %}<span class="rc-badge rc-badge--warning">{{ t('search.status.rate_limited', time=row.retry_at | isolocaltime('%H:%M')) }}</span>{% elif row.status == 'not_configured' %}<span class="rc-muted">{{ t('search.status.not_configured') }}</span> · <a href="{{ url_for('settings.edit', _anchor='fuentes') }}">{{ t('search.to_settings') }}</a>{% else %}<span class="rc-muted">{{ t('search.status.' ~ row.status) }}</span>{% endif %}</td>
+      <td class="num">{{ row.received }}</td>
+      <td class="num">{{ row.duplicates }}</td>
+      <td class="num">{{ row.bad_items + row.too_short + row.over_cap + (row.filtered.values() | sum) }}</td>
+      <td class="num rc-strong">{{ row.added }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% for row in summary.sources %}
+  {% set ns = namespace(parts=[]) %}
+  {% for key in ('bad_items', 'too_short', 'over_cap') %}{% if row[key] %}{% set ns.parts = ns.parts + [t('search.reason.' ~ key, count=row[key])] %}{% endif %}{% endfor %}
+  {% for why, count in row.filtered.items() %}{% set kind = why.partition(':')[0] %}{% set ns.parts = ns.parts + [t('search.reason.' ~ kind, count=count, word=why.partition(':')[2])] %}{% endfor %}
+  {% if ns.parts %}<div class="rc-row rc-small rc-panel__foot rc-panel__body"><span class="rc-muted">{{ t('search.discards', source=row.label) }}</span>{% for part in ns.parts %}<span class="rc-badge">{{ part }}</span>{% endfor %}</div>{% endif %}
+  {% endfor %}
+  {% endif %}
+  {% if new_jobs %}
+  <ul class="rc-list rc-panel__foot">
+    {% for job in new_jobs %}
+    <li>{{ score_badge(job.score) }}<div class="grow"><a class="rc-strong rc-link-plain" href="{{ url_for('jobs.show', job_id=job.id) }}">{{ job.title }}</a> <span class="rc-subtle">· {{ job.company }}</span></div>{% if job.source in source_registry %}<span class="rc-badge">{{ source_registry[job.source].label }}</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  <p class="rc-small rc-subtle rc-panel__foot rc-panel__body">{{ t('search.score_help') }}</p>
+  {% endif %}
+</section>

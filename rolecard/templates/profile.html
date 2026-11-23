@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_error, csrf_field %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ t('profile.title') }}{% endblock %}
+{% block own_h1 %}{{ 'yes' }}{% endblock %}
+{% block header_meta %}<span class="rc-small rc-subtle rc-ellipsis">{{ t('profile.intro') }}</span>{% endblock %}
+{% block actions %}<button class="rc-btn rc-btn--primary" type="submit" form="perfil">{{ t('profile.save') }}</button>{% endblock %}
+{% block page_class %}{{ 'rc-page--narrow' }}{% endblock %}
+{% set SPANS = {'role': 4, 'company': 4, 'start': 2, 'end': 2, 'location': 4, 'name': 6,
+                'degree': 6, 'institution': 6, 'language': 4, 'level': 3} %}
+
+{% macro entry(section, entry_id, values, open=false) -%}
+{% set first = values[sections[section][0]] %}
+<details class="rc-details" data-repeat-entry{% if open %} open{% endif %}>
+  <summary>{{ first or t('profile.new_entry') }}
+    {% set meta = [values.company or values.institution or values.level, (values.start ~ '–' ~ (values.end or t('profile.now'))) if values.start else '', values.location] | select | list %}
+    {% if meta %}<span class="meta">{{ meta | join(' · ') }}</span>{% endif %}
+  </summary>
+  <div class="body">
+    <div class="rc-form">
+      {% for field in sections[section] %}
+      {% set fid = section ~ '-' ~ entry_id ~ '-' ~ field %}
+      {% if field in list_fields or field == 'description' %}
+      <label class="rc-field span-12" for="{{ fid }}"><span class="rc-label">{{ t('profile.field.' ~ field) }}</span>
+        <textarea class="rc-textarea" id="{{ fid }}" name="{{ fid }}" rows="3"{% if field in list_fields %} aria-describedby="{{ fid }}-help"{% endif %}>{{ values[field] | join('\n') if field in list_fields else values[field] }}</textarea>
+        {% if field in list_fields %}<span class="rc-hint" id="{{ fid }}-help">{{ t('profile.one_per_line_cited') }}</span>{% endif %}</label>
+      {% else %}
+      <label class="rc-field span-{{ SPANS.get(field, 4) }}" for="{{ fid }}"><span class="rc-label">{{ t('profile.field.' ~ field) }}</span>
+        <input class="rc-input{% if field in ('start', 'end') %} rc-num{% endif %}" id="{{ fid }}" name="{{ fid }}" value="{{ values[field] }}"{% if field == 'end' %} placeholder="{{ t('profile.now') }}"{% endif %}></label>
+      {% endif %}
+      {% endfor %}
+    </div>
+    <div class="rc-form-actions"><button class="rc-btn rc-btn--ghost rc-btn--sm rc-btn--danger" type="button" data-repeat-remove>{{ t('profile.remove') }}</button></div>
+  </div>
+</details>
+{%- endmacro %}
+
+{% macro repeat(section) -%}
+<div class="rc-stack rc-stack--tight">
+  <div class="rc-stack rc-stack--tight" data-repeat-list="{{ section }}">
+    {% for item in profile[section] %}{{ entry(section, loop.index, item, open=loop.first) }}{% endfor %}
+  </div>
+  <template data-repeat-template="{{ section }}">{{ entry(section, '__new__', blank_entries[section], open=true) }}</template>
+  <div><button class="rc-btn" type="button" data-repeat-add="{{ section }}">{{ icon('plus', 14) }}{{ t('profile.add.' ~ section) }}</button></div>
+</div>
+{%- endmacro %}
+
+{% block content %}
+<h1 class="solo-lectores">{{ t('profile.title') }}</h1>
+{% if stored and stored.needs_review %}
+<div class="rc-callout rc-callout--warning" role="status">{{ icon('warning') }}<span><strong>{{ t('profile.review_title') }}</strong> {{ t('profile.review_body') }}</span></div>
+{% endif %}
+
+<nav class="rc-tabs" aria-label="{{ t('profile.tabs') }}">
+  {% for name in tabs %}
+  {% set count = (profile[name] | length) if name in sections else 0 %}
+  <a class="rc-tab" href="{{ url_for('profile.edit', tab=name) }}" data-tab="{{ name }}"{% if name == tab %} aria-current="page"{% endif %}>{{ t('profile.tab.' ~ name) }}{% if count %} <span class="rc-count">{{ count }}</span>{% endif %}</a>
+  {% endfor %}
+</nav>
+
+{% if has_provider %}
+<form id="subir-cv" hidden method="post" action="{{ url_for('profile.upload') }}" enctype="multipart/form-data" aria-label="{{ t('profile.upload_title') }}">{{ csrf_field() }}</form>
+{% endif %}
+{% if stored %}
+<form id="borrar-perfil" hidden method="post" action="{{ url_for('profile.delete') }}" data-confirm="{{ t('profile.delete_confirm') }}">{{ csrf_field() }}</form>
+{% endif %}
+
+{% if errors %}<div class="alerta alerta-error" role="alert">{{ t(errors.form or 'form.has_errors') }}</div>{% endif %}
+<form id="perfil" method="post" action="{{ url_for('profile.save') }}">
+  {{ csrf_field() }}
+  <input type="hidden" name="tab" value="{{ tab }}" data-tab-input>
+
+  <section class="rc-stack" data-tab-panel="basics"{% if tab != 'basics' %} hidden{% endif %} aria-label="{{ t('profile.tab.basics') }}">
+    {% if has_provider %}
+    <div class="rc-upload" data-dropzone>
+      <span class="rc-upload__icon">{{ icon('upload') }}</span>
+      <span class="rc-upload__text"><label class="rc-strong" for="cv">{{ t('profile.drop') }} <span class="rc-upload__link">{{ t('profile.or_choose') }}</span></label>
+        <span class="rc-small rc-subtle" id="subir-ayuda">{{ t('profile.upload_help') }}</span>
+        <span class="rc-small" data-dropzone-name></span></span>
+      <input class="solo-lectores" id="cv" name="cv" type="file" accept=".pdf,.docx" required form="subir-cv" aria-describedby="subir-ayuda">
+      <span class="rc-row">
+        {% if stored %}<label class="rc-check rc-small rc-muted"><input type="checkbox" name="replace" value="1" required form="subir-cv">{{ t('profile.replace_confirm') }}</label>{% endif %}
+        <button class="rc-btn rc-btn--primary" type="submit" form="subir-cv">{{ t('profile.upload') }}</button>
+      </span>
+    </div>
+    {% else %}
+    <div class="rc-callout" role="status">{{ icon('info') }}<span>{{ t('profile.no_provider') }} <a href="{{ url_for('settings.edit') }}">{{ t('empty.provider.action') }}</a></span></div>
+    {% endif %}
+    <div class="rc-form">
+      {% for field, span in (('name', 4), ('headline', 8), ('email', 4), ('phone', 4), ('location', 4)) %}
+      {% set fid = 'basics-' ~ field %}
+      <label class="rc-field span-{{ span }}" for="{{ fid }}"><span class="rc-label">{{ t('profile.field.' ~ field) }}{% if field == 'name' %} <span class="req" aria-hidden="true">*</span>{% endif %}</span>
+        <input class="rc-input" id="{{ fid }}" name="{{ fid }}" value="{{ profile.basics[field] }}"{% if field == 'name' %} required{% endif %}{% if field == 'email' %} type="email"{% endif %}{% if errors[fid] %} aria-invalid="true" aria-describedby="{{ fid }}-error"{% endif %}>
+        {{ field_error(errors, fid) }}</label>
+      {% endfor %}
+      <label class="rc-field span-12" for="basics-summary"><span class="rc-label">{{ t('profile.field.summary') }}</span><textarea class="rc-textarea" id="basics-summary" name="basics-summary" rows="3">{{ profile.basics.summary }}</textarea></label>
+      <label class="rc-field span-8" for="basics-links"><span class="rc-label">{{ t('profile.field.links') }}</span><textarea class="rc-textarea" id="basics-links" name="basics-links" rows="2" aria-describedby="links-help">{{ profile.basics.links | join('\n') }}</textarea><span class="rc-hint" id="links-help">{{ t('profile.one_per_line') }}</span></label>
+    </div>
+  </section>
+
+  {% for section in ('experience', 'projects', 'education', 'languages') %}
+  <section data-tab-panel="{{ section }}"{% if tab != section %} hidden{% endif %} aria-label="{{ t('profile.tab.' ~ section) }}">{{ repeat(section) }}</section>
+  {% endfor %}
+
+  <section data-tab-panel="skills"{% if tab != 'skills' %} hidden{% endif %} aria-label="{{ t('profile.tab.skills') }}">
+    <div class="rc-form">
+      <label class="rc-field span-12" for="skills"><span class="rc-label">{{ t('profile.field.skills') }}</span><textarea class="rc-textarea" id="skills" name="skills" rows="3" aria-describedby="skills-help">{{ profile.skills | join(', ') }}</textarea><span class="rc-hint" id="skills-help">{{ t('profile.comma_separated') }}</span></label>
+    </div>
+  </section>
+
+  <div class="rc-form-actions">
+    <button class="rc-btn rc-btn--primary" type="submit">{{ t('profile.save') }}</button>
+    <span class="rc-hint rc-hint--start">{{ t('profile.save_all') }}</span>
+    {% if stored %}<button class="rc-btn rc-btn--ghost rc-btn--danger rc-push" type="submit" form="borrar-perfil">{{ t('profile.delete') }}</button>{% endif %}
+  </div>
+</form>
+{% endblock %}

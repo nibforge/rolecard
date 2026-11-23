@@ -1,0 +1,33 @@
+{% from "_macros.html" import csrf_field, score_badge %}
+{% from "_icons.html" import icon %}
+<section class="rc-panel" aria-labelledby="analisis">
+  <div class="rc-panel__body rc-fit">
+    {{ score_badge(job.score, large=true) }}
+    <div class="rc-fit__summary">
+      <h2 id="analisis" class="rc-fit__title">{% if job.score is none %}{{ t('job.fit') }}{% else %}{{ t('job.fit_level.' ~ ('high' if job.score >= 75 else 'mid' if job.score >= 50 else 'low')) }}{% endif %}</h2>
+      {% if job.score is not none %}
+      <p class="rc-muted">{{ job.score_summary }}</p>
+      {% elif not has_profile %}
+      <p class="rc-muted">{{ t('job.unscored.no_profile') }} <a href="{{ url_for('profile.edit') }}">{{ t('empty.profile.action') }}</a></p>
+      {% elif not has_provider %}
+      <p class="rc-muted">{{ t('job.unscored.no_provider') }} <a href="{{ url_for('settings.edit') }}">{{ t('empty.provider.action') }}</a></p>
+      {% else %}
+      <p class="rc-muted">{{ t('job.unscored.retry') }}</p>
+      {% endif %}
+    </div>
+    {% if job.score is not none %}
+    {% for key, items, mark in (('job.met', job.score_met, 'check'), ('job.missing', job.score_missing, 'close')) %}
+    <div class="rc-fit__list">
+      <h3 class="rc-label">{{ t(key) }}</h3>
+      {% if items %}<ul class="rc-checks rc-checks--{{ mark }}">{% for item in items %}<li>{{ icon(mark, 14) }}{{ item }}</li>{% endfor %}</ul>{% else %}<p class="rc-hint">{{ t('job.none') }}</p>{% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% if has_profile and has_provider %}
+    <form method="post" action="{{ url_for('jobs.rescore', job_id=job.id) }}">
+      {{ csrf_field() }}
+      <button class="rc-btn rc-btn--sm{% if job.score is not none %} rc-btn--ghost{% endif %}" type="submit" data-busy="{{ t('ai.working') }}">{{ icon('refresh', 12) }}{{ t('job.rescore') if job.score is not none else t('job.score') }}</button>
+    </form>
+    {% endif %}
+  </div>
+</section>

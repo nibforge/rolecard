@@ -1,0 +1,20 @@
+# Ruff del perfil (lint: `venv/Scripts/python.exe -m ruff check .`). Estilo, imports y
+# errores, más complejidad y tamaño. Las líneas por archivo y por función las vigila
+# .claude/metodo/lib/check_codigo.mjs (.claude/metodo/calidad.json); aquí, lo que solo ve un parser.
+# max-statements repite el tope por función de calidad.json: si cambia uno, cambia el otro.
+line-length = 100
+# .claude/ es del método (llega con cada versión): no es código del proyecto.
+extend-exclude = ["migrations", "venv", ".claude"]
+
+[lint]
+select = ["E", "W", "F", "I", "B", "UP", "C901", "PLR0912", "PLR0915", "E501"]
+
+[lint.mccabe]
+max-complexity = 10
+
+[lint.pylint]
+max-branches = 12
+max-statements = 50
+
+[lint.per-file-ignores]
+"tests/**" = ["PLR0915"]

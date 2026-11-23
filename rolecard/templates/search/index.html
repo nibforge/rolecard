@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ search.name if search else t('search.title') }}{% endblock %}
+{% block crumbs %}{% if search %}<a class="rc-muted" href="{{ url_for('search.index') }}">{{ t('nav.searches') }}</a>{{ icon('chevron', 12) }}<b>{{ search.name }}</b>{% else %}<b>{{ t('nav.searches') }}</b>{% endif %}{% endblock %}
+{% block actions %}<span class="rc-small rc-subtle">{{ t('search.intro_short') }}</span>{% endblock %}
+{% block page_class %}{{ 'rc-page--wide' }}{% endblock %}
+{% block content %}
+<h1 class="solo-lectores">{{ search.name if search else t('search.title') }}</h1>
+<div class="rc-detail">
+  <aside class="rail rc-rail--start" aria-label="{{ t('search.saved_list') }}">
+    <section class="rc-panel">
+      <div class="rc-panel__head">{{ t('search.saved_list') }}
+        <div class="end"><a class="rc-btn rc-btn--sm rc-btn--ghost" href="{{ url_for('search.index') }}">{{ icon('plus', 12) }}{{ t('search.new_short') }}</a></div>
+      </div>
+      {% if searches %}
+      <ul class="rc-list">
+        {% for s in searches %}
+        <li{% if search and s.id == search.id %} class="is-current"{% endif %}>
+          <div class="grow">
+            <a class="rc-strong rc-link-plain" href="{{ url_for('search.show', search_id=s.id) }}"{% if search and s.id == search.id %} aria-current="page"{% endif %}>{{ s.name }}</a>
+            <div class="rc-small rc-subtle">{% if s.last_run_at %}{{ t('search.last_run', at=s.last_run_at | localdatetime) }}{% else %}{{ t('search.never_run') }}{% endif %}</div>
+          </div>
+          <form method="post" action="{{ url_for('search.run', search_id=s.id) }}" data-busy>
+            {{ csrf_field() }}
+            <button class="rc-btn rc-btn--sm rc-btn--ghost rc-btn--icon" type="submit" aria-label="{{ t('search.run_named', name=s.name) }}">{{ icon('play', 12) }}</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rc-panel__body rc-muted">{{ t('search.empty') }}</p>
+      {% endif %}
+    </section>
+  </aside>
+  <div class="content">
+    {% include "search/_form.html" %}
+    {% if search %}
+    <div id="resumen" aria-live="polite">{% include "search/_summary.html" %}</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% from "_macros.html" import follow_up_badge, score_badge, csrf_field %}
+{% from "_icons.html" import icon, status_icon %}
+{% block title %}{{ t('dashboard.title') }}{% endblock %}
+{% block own_h1 %}{% if not (has_provider and has_profile and has_jobs) %}{{ 'yes' }}{% endif %}{% endblock %}
+{% block actions %}{% if week %}<a class="rc-btn rc-btn--primary" href="{{ url_for('jobs.new') }}">{{ icon('plus', 14) }}{{ t('nav.new_job') }}</a>{% endif %}{% endblock %}
+{% block content %}
+{% if not (has_provider and has_profile and has_jobs) %}
+<div class="rc-stack">
+  <h1 class="rc-h1">{{ t('dashboard.start.title') }}</h1>
+  <p class="rc-muted rc-flush">{{ t('dashboard.intro') }}</p>
+</div>
+<ol class="rc-steps" aria-label="{{ t('dashboard.start.steps') }}">
+  {% if not has_provider %}
+  <li class="rc-panel rc-panel__body rc-stack">
+    <h2>{{ t('empty.provider.title') }}</h2>
+    <p class="rc-muted">{{ t('empty.provider.text') }}</p>
+    <div><a class="rc-btn rc-btn--primary" href="{{ url_for('settings.edit') }}">{{ t('empty.provider.action') }}</a></div>
+  </li>
+  {% endif %}
+  {% if not has_profile %}
+  <li class="rc-panel rc-panel__body rc-stack">
+    <h2>{{ t('empty.profile.title') }}</h2>
+    <p class="rc-muted">{{ t('empty.profile.text') }}</p>
+    <div><a class="rc-btn{% if has_provider %} rc-btn--primary{% endif %}" href="{{ url_for('profile.edit') }}">{{ t('empty.profile.action') }}</a></div>
+  </li>
+  {% endif %}
+  {% if not has_jobs %}
+  <li class="rc-panel rc-panel__body rc-stack">
+    <h2>{{ t('empty.jobs.title') }}</h2>
+    <p class="rc-muted">{{ t('empty.jobs.text') }}</p>
+    <div><a class="rc-btn{% if has_provider and has_profile %} rc-btn--primary{% endif %}" href="{{ url_for('jobs.new') }}">{{ t('empty.jobs.action') }}</a></div>
+  </li>
+  {% endif %}
+</ol>
+{% endif %}
+
+{% if week %}
+<section aria-labelledby="semana" class="rc-stack rc-stack--tight">
+  <h2 class="rc-h2" id="semana">{{ t('dashboard.week.title') }} <span class="rc-small rc-subtle">{{ t('dashboard.week.since', date=week.since | shortdate) }}</span></h2>
+  <dl class="rc-kpis">
+    {% for key, value in (('added', week.added), ('sent', week.sent), ('interviews', week.interviews), ('overdue', week.overdue)) %}
+    <div class="rc-kpi"><dt class="rc-small rc-muted">{{ t('dashboard.week.' ~ key) }}</dt><dd><b>{{ value }}</b></dd></div>
+    {% endfor %}
+  </dl>
+</section>
+
+<div class="rc-grid-2 rc-grid--start">
+  <section class="rc-panel" aria-labelledby="hoy">
+    <h2 class="rc-panel__head" id="hoy">{{ t('dashboard.today.title') }}{% if today_work.count %} <span class="rc-count">{{ today_work.count }}</span>{% endif %}</h2>
+    {% if today_work.count %}
+    <ul class="rc-list">
+      {% if today_work.unscored %}
+      <li><span class="rc-icon rc-subtle">{{ icon('new') }}</span><div class="grow">{{ t('dashboard.today.unscored', count=today_work.unscored) }}</div><a class="rc-btn rc-btn--sm" href="{{ url_for('board.index', unscored=1) }}">{{ t('dashboard.today.score') }}</a></li>
+      {% endif %}
+      {% for doc, pending in today_work.documents %}
+      <li><span class="rc-icon rc-text-warning">{{ icon('doc') }}</span><div class="grow"><span class="rc-strong">{{ t('document.short.' ~ doc.kind) }} · {{ doc.job.title or t('job.untitled') }}</span><div class="rc-small rc-subtle">{{ t('dashboard.today.sentences', count=pending) }}</div></div><a class="rc-btn rc-btn--sm" href="{{ url_for('documents.review', job_id=doc.job_id, kind=doc.kind) }}">{{ t('dashboard.today.review') }}</a></li>
+      {% endfor %}
+      {% for job in today_work.follow_ups %}
+      <li><span class="rc-icon rc-text-warning">{{ icon('clock') }}</span><div class="grow"><span class="rc-strong">{{ job.title or t('job.untitled') }}</span>{% if job.company %} <span class="rc-subtle">· {{ job.company }}</span>{% endif %}<div class="rc-small">{{ follow_up_badge(job.follow_up_on, today) }} {{ status_icon(job.status) }}</div></div><a class="rc-btn rc-btn--sm" href="{{ url_for('jobs.show', job_id=job.id) }}">{{ t('dashboard.today.open') }}</a></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="rc-panel__body rc-muted rc-flush">{{ t('dashboard.follow_ups.none') }}</p>
+    {% endif %}
+  </section>
+
+  <section class="rc-panel" aria-labelledby="mejor">
+    <div class="rc-panel__head"><h2 class="rc-panel__title" id="mejor">{{ t('dashboard.best.title') }}</h2><div class="end"><a class="rc-small" href="{{ url_for('jobs.index', sort='score') }}">{{ t('dashboard.best.all') }}</a></div></div>
+    {% if best %}
+    <ul class="rc-list">
+      {% for job in best %}
+      <li>{{ score_badge(job.score) }}<div class="grow"><a class="rc-strong rc-link-plain" href="{{ url_for('jobs.show', job_id=job.id) }}">{{ job.title or t('job.untitled') }}</a>{% if job.company %} <span class="rc-subtle">· {{ job.company }}</span>{% endif %}</div>{{ status_icon(job.status) }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="rc-panel__body rc-muted rc-flush">{{ t('dashboard.best.none') }}</p>
+    {% endif %}
+  </section>
+
+  <section class="rc-panel" aria-labelledby="busquedas">
+    <div class="rc-panel__head"><h2 class="rc-panel__title" id="busquedas">{{ t('dashboard.searches.title') }}</h2><div class="end"><a class="rc-small" href="{{ url_for('search.index') }}">{{ t('dashboard.searches.new') }}</a></div></div>
+    {% if searches %}
+    <ul class="rc-list">
+      {% for s in searches %}
+      <li><div class="grow"><a class="rc-strong rc-link-plain" href="{{ url_for('search.show', search_id=s.id) }}">{{ s.name }}</a><div class="rc-small rc-subtle">{% if s.last_run_at %}{{ t('search.last_run', at=s.last_run_at | localdatetime) }}{% else %}{{ t('search.never_run') }}{% endif %}</div></div>
+        <form method="post" action="{{ url_for('search.run', search_id=s.id) }}" data-busy>{{ csrf_field() }}<button class="rc-btn rc-btn--sm rc-btn--ghost" type="submit" aria-label="{{ t('search.run_named', name=s.name) }}">{{ icon('play', 12) }}{{ t('dashboard.searches.run') }}</button></form></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="rc-panel__body rc-muted rc-flush">{{ t('search.empty') }}</p>
+    {% endif %}
+  </section>
+
+  <section class="rc-panel" aria-labelledby="embudo">
+    <h2 class="rc-panel__head" id="embudo">{{ t('dashboard.funnel.title') }}</h2>
+    {% set top = [funnel[0][1], 1] | max %}
+    <dl class="rc-props rc-funnel rc-panel__body">
+      {% for stage, count in funnel %}
+      <dt>{{ t('dashboard.funnel.' ~ stage) }}</dt>
+      <dd><svg class="rc-bar" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true"><rect class="track" width="100" height="8" rx="2"/>{% if count %}<rect class="fill" width="{{ [[count * 100 / top, 2] | max, 100] | min }}" height="8" rx="2"/>{% endif %}</svg></dd>
+      <dd class="rc-num rc-muted">{{ count }}</dd>
+      {% endfor %}
+    </dl>
+  </section>
+</div>
+{% endif %}
+{% endblock %}

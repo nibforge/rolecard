@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon, status_icon %}
+{% block title %}{{ t('nav.offers') }}{% endblock %}
+{% block header_meta %}{% if has_jobs %}<span class="rc-subtle rc-small">{{ t('board.sorted', count=shown | num) }}</span>{% endif %}{% endblock %}
+{% block actions %}<a class="rc-btn rc-btn--primary" href="{{ url_for('jobs.new') }}">{{ icon('plus', 14) }}{{ t('nav.new_job') }}</a>{% endblock %}
+{% block page_class %}{{ 'rc-page--full' }}{% endblock %}
+{% block content %}
+{% if not has_jobs %}
+<div class="vacio">
+  <h2>{{ t('empty.jobs.title') }}</h2>
+  <p>{{ t('empty.jobs.text') }}</p>
+  <a class="rc-btn rc-btn--primary" href="{{ url_for('jobs.new') }}">{{ t('empty.jobs.action') }}</a>
+</div>
+{% else %}
+<div id="offers" class="rc-offers" hx-target="#offers" hx-select="#offers" hx-swap="outerHTML" hx-push-url="true">
+{% with view = 'board' %}{% include "_offers_toolbar.html" %}{% endwith %}
+{% if shown == 0 and filters.active %}
+<div class="vacio" role="status">
+  <h2>{% if filters.query %}{{ t('board.no_match_query', query=filters.query) }}{% else %}{{ t('board.no_match') }}{% endif %}</h2>
+  <p>{{ t('board.no_match_hint') }}</p>
+  <a class="rc-btn" href="{{ url_for('board.index') }}">{{ t('board.clear') }}</a>
+</div>
+{% endif %}
+<div class="rc-board">
+  {% for col in columns %}
+  <section class="rc-col" aria-labelledby="col-{{ col.status }}">
+    <h2 class="rc-col__head" id="col-{{ col.status }}">{{ status_icon(col.status) }} <span class="rc-count">{{ col.total | num }}</span></h2>
+    {% if col.jobs %}{% include "_board_column.html" %}{% else %}<p class="rc-col__empty">{{ t('board.column_empty') }}</p>{% endif %}
+  </section>
+  {% endfor %}
+</div>
+<p class="rc-small rc-subtle rc-board__note">{{ t('board.intro') }}{% if hidden_discarded %} {{ t('board.discarded_hidden', count=hidden_discarded | num) }}{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

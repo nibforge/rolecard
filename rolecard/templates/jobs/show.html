@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_error, csrf_field, source_credit %}
+{% from "_icons.html" import icon, status_icon %}
+{% set title = job.title or t('job.untitled') %}
+{% block title %}{{ title }}{% endblock %}
+{% block crumbs %}<a class="rc-muted" href="{{ url_for('board.index') }}">{{ t('nav.offers') }}</a>{{ icon('chevron', 12) }}<b>{{ title }}</b>{% endblock %}
+{% block actions %}
+{% if job.url %}<a class="rc-btn" href="{{ job.url }}" target="_blank" rel="noopener noreferrer">{{ t('job.open') }}{{ icon('external', 12) }}</a>{% endif %}
+{% if job.status != 'sent' %}
+<form method="post" action="{{ url_for('jobs.status', job_id=job.id) }}">{{ csrf_field() }}<input type="hidden" name="status" value="{{ 'sent' }}"><button class="rc-btn rc-btn--primary" type="submit">{{ t('job.mark_sent') }}</button></form>
+{% endif %}
+{% endblock %}
+{% block content %}
+{% if errors %}<div class="alerta alerta-error" role="alert">{{ t(errors.tracking or 'form.has_errors') }}</div>{% endif %}
+<div class="rc-detail">
+  <div class="content">
+    <div class="rc-stack rc-stack--tight">
+      <h1 class="rc-h1">{{ title }}</h1>
+      <div class="rc-row rc-muted">
+        {% if job.company %}<span>{{ job.company }}</span><i class="rc-dot"></i>{% endif %}
+        {% if job.location %}<span>{{ job.location }}</span><i class="rc-dot"></i>{% endif %}
+        <span>{{ t('job.added_on', date=job.created_at | shortdate) }}</span>
+        {% if job.source in source_registry %}<i class="rc-dot"></i>{{ source_credit(job) }}{% endif %}
+      </div>
+    </div>
+    {% include "jobs/_analysis.html" %}
+    <nav class="rc-tabs" aria-label="{{ t('job.tabs') }}">
+      {% for name in ('description', 'history') %}
+      <a class="rc-tab" href="{{ url_for('jobs.show', job_id=job.id, tab=None if name == 'description' else name) }}"{% if tab == name %} aria-current="page"{% endif %}>{{ t('job.tab.' ~ name) }}{% if name == 'history' %} <span class="rc-count">{{ job.events | length }}</span>{% endif %}</a>
+      {% endfor %}
+    </nav>
+    {% if tab == 'history' %}
+    <ol class="rc-list rc-panel" aria-label="{{ t('tracking.history') }}">
+      {% for event in job.events | reverse %}<li class="rc-small">{{ status_icon(event.status) }}<span class="grow rc-subtle">{{ event.at | localdatetime }}</span></li>{% endfor %}
+    </ol>
+    {% else %}
+    <section aria-label="{{ t('job.field.text') }}"><pre class="rc-offer-text">{{ job.text }}</pre></section>
+    {% endif %}
+  </div>
+  <aside class="rail" aria-label="{{ t('job.aside') }}">
+    {% include "jobs/_tracking.html" %}
+    {% include "jobs/_documents.html" %}
+    <details class="rc-details" id="editar"{% if errors and not errors.tracking %} open{% endif %}>
+      <summary>{{ t('job.edit') }}</summary>
+      <form id="datos" class="body rc-form" method="post" action="{{ url_for('jobs.update', job_id=job.id) }}" hx-post="{{ url_for('jobs.update', job_id=job.id) }}" hx-trigger="change" hx-target="#principal" hx-select="#principal" hx-swap="outerHTML" data-autosave>
+        {{ csrf_field() }}
+        {% for field in ('title', 'company', 'location', 'url') %}
+        <div class="rc-field span-12">
+          <label class="rc-label" for="edit-{{ field }}">{{ t('job.field.' ~ field) }}</label>
+          <input class="rc-input w-full" id="edit-{{ field }}" name="{{ field }}" value="{{ job[field] or '' }}"{% if field == 'url' %} type="url"{% endif %}{% if errors[field] %} aria-invalid="true" aria-describedby="{{ field }}-error"{% endif %}>
+          {{ field_error(errors, field) }}
+        </div>
+        {% endfor %}
+        <div class="rc-form-actions span-12"><noscript><button class="rc-btn rc-btn--primary" type="submit">{{ t('job.save') }}</button></noscript><span class="rc-saved" data-saved role="status" hidden>{{ t('form.saved') }}</span></div>
+      </form>
+    </details>
+    <form method="post" action="{{ url_for('jobs.delete', job_id=job.id) }}" data-confirm="{{ t('job.delete_confirm') }}">
+      {{ csrf_field() }}
+      <button class="rc-btn rc-btn--ghost rc-btn--danger" type="submit">{{ t('job.delete') }}</button>
+    </form>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon, status_icon %}
+{% from "_macros.html" import score_badge %}
+{% block title %}{{ t('nav.offers') }}{% endblock %}
+{% block header_meta %}{% if has_jobs %}<span class="rc-subtle rc-small">{{ t('list.total', count=result.total | num) }}</span>{% endif %}{% endblock %}
+{% block actions %}<a class="rc-btn rc-btn--primary" href="{{ url_for('jobs.new') }}">{{ icon('plus', 14) }}{{ t('nav.new_job') }}</a>{% endblock %}
+{% block page_class %}{{ 'rc-page--full' }}{% endblock %}
+{% block content %}
+{% if not has_jobs %}
+<div class="vacio">
+  <h2>{{ t('empty.jobs.title') }}</h2>
+  <p>{{ t('empty.jobs.text') }}</p>
+  <a class="rc-btn rc-btn--primary" href="{{ url_for('jobs.new') }}">{{ t('empty.jobs.action') }}</a>
+</div>
+{% else %}
+<div id="offers" hx-target="#offers" hx-select="#offers" hx-swap="outerHTML" hx-push-url="true">
+{% with view = 'list' %}{% include "_offers_toolbar.html" %}{% endwith %}
+<div class="rc-table-wrap">
+  {% include "jobs/_bulk_bar.html" %}
+  <div class="rc-table-scroll"><table class="rc-table">
+    <thead><tr>
+      <th class="rc-table__check"><input type="checkbox" form="bulk" data-select-all aria-label="{{ t('list.select_all') }}"></th>
+      {% for column, cls in (('title', ''), ('company', ''), ('score', 'num'), ('status', ''), ('source', ''), ('created', ''), ('follow_up', '')) %}
+      {% set sorted = params.sort == column %}
+      <th{% if cls %} class="{{ cls }}"{% endif %}{% if sorted %} aria-sort="{{ 'descending' if params.dir == 'desc' else 'ascending' }}"{% endif %}>
+        {%- if column == 'status' %}{{ t('list.col.status') }}{% else %}
+        {%- set href = url_for('jobs.index', **dict(filters.to_args(), **params.sort_link(column))) %}
+        <a href="{{ href }}" hx-get="{{ href }}">{{ t('list.col.' ~ column) }}{% if sorted %}{{ icon('arrow-down' if params.dir == 'desc' else 'arrow-up', 12) }}{% endif %}</a>{% endif -%}
+      </th>
+      {% endfor %}
+    </tr></thead>
+    <tbody>
+      {% for job in result.jobs %}
+      {% set title = job.title or t('job.untitled') %}
+      <tr>
+        <td class="rc-table__check"><input type="checkbox" form="bulk" name="ids" value="{{ job.id }}" aria-label="{{ t('list.select', title=title) }}"></td>
+        <td class="title"><a href="{{ url_for('jobs.show', job_id=job.id) }}">{{ title }}</a></td>
+        <td>{{ job.company }}</td>
+        <td class="num">{{ score_badge(job.score) }}</td>
+        <td>{{ status_icon(job.status) }}</td>
+        <td class="rc-muted">{% if job.source in source_registry %}{{ source_registry[job.source].label }}{% else %}{{ t('board.source_manual') }}{% endif %}</td>
+        <td class="rc-subtle">{{ job.created_at | localdate }}</td>
+        <td{% if job.follow_up_on and job.follow_up_on < today %} class="rc-overdue"{% else %} class="rc-subtle"{% endif %}>{% if job.follow_up_on %}{{ job.follow_up_on.isoformat() }}{% if job.follow_up_on < today %} · {{ t('list.overdue') }}{% endif %}{% else %}—{% endif %}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="rc-table__empty" role="status">{% if filters.query %}{{ t('board.no_match_query', query=filters.query) }}{% else %}{{ t('board.no_match') }}{% endif %} · <a href="{{ url_for('jobs.index') }}">{{ t('board.clear') }}</a></td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  <form class="rc-pager" method="get" action="{{ url_for('jobs.index') }}" hx-get="{{ url_for('jobs.index') }}" hx-trigger="change">
+    <span class="rc-num">{{ t('list.range', start=result.start | num, end=result.end | num, total=result.total | num) }}</span>
+    {% for name, value in dict(filters.to_args(), **params.to_args(per_page=0, page=1)).items() if name != 'per_page' %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+    <select class="rc-select rc-select--sm w-2xs" name="per_page" aria-label="{{ t('list.rows_per_page') }}">
+      {% for n in per_page_options %}<option value="{{ n }}"{% if n == params.per_page %} selected{% endif %}>{{ n }}</option>{% endfor %}
+    </select>
+    <span>{{ t('list.per_page') }}</span>
+    <noscript><button class="rc-btn rc-btn--sm" type="submit">{{ t('board.filter') }}</button></noscript>
+    <div class="end">
+      {% if params.page > 1 %}{% set prev = url_for('jobs.index', **dict(filters.to_args(), **params.to_args(page=params.page - 1))) %}<a class="rc-btn rc-btn--sm" href="{{ prev }}" hx-get="{{ prev }}" rel="prev">{{ t('list.prev') }}</a>{% endif %}
+      <span class="rc-num">{{ t('list.page', page=params.page | num, pages=result.pages | num) }}</span>
+      {% if params.page < result.pages %}{% set next = url_for('jobs.index', **dict(filters.to_args(), **params.to_args(page=params.page + 1))) %}<a class="rc-btn rc-btn--sm" href="{{ next }}" hx-get="{{ next }}" rel="next">{{ t('list.next') }}</a>{% endif %}
+    </div>
+  </form>
+</div>
+</div>
+{% endif %}
+{% endblock %}

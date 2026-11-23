@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_error, csrf_field %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ t('job.new.title') }}{% endblock %}
+{% block crumbs %}<a class="rc-muted" href="{{ url_for('board.index') }}">{{ t('nav.offers') }}</a>{{ icon('chevron', 12) }}<b>{{ t('job.new.title') }}</b>{% endblock %}
+{% block content %}
+<form class="rc-dialog rc-dialog--page" method="post" action="{{ url_for('jobs.create') }}" aria-labelledby="new-title">
+  {{ csrf_field() }}
+  <div class="rc-panel__head">
+    <h1 id="new-title" class="rc-dialog__title">{{ t('job.new.title') }}</h1>
+    <div class="end"><a class="rc-btn rc-btn--ghost rc-btn--icon" href="{{ url_for('board.index') }}" aria-label="{{ t('form.cancel') }}">{{ icon('close', 14) }}</a></div>
+  </div>
+  <div class="rc-panel__body rc-stack">
+    <p class="rc-muted">{{ t('job.new.intro') }}</p>
+    {% if duplicate %}
+    <div class="alerta alerta-info" role="status">{{ t('job.duplicate') }} <a href="{{ url_for('jobs.show', job_id=duplicate.id) }}">{{ duplicate.title or t('job.untitled') }}{% if duplicate.company %} · {{ duplicate.company }}{% endif %}</a></div>
+    {% endif %}
+    {% if errors %}<div class="alerta alerta-error" role="alert">{{ t('form.has_errors') }}</div>{% endif %}
+    <div class="rc-form">
+      <div class="rc-field span-12">
+        <label class="rc-label" for="text">{{ t('job.field.text') }} <span class="req" aria-hidden="true">*</span></label>
+        <textarea class="rc-textarea" id="text" name="text" rows="9" required{% if errors.text %} aria-invalid="true" aria-describedby="text-error"{% endif %}>{{ form.text }}</textarea>
+        {{ field_error(errors, 'text') }}
+      </div>
+      <div class="rc-field span-12">
+        <label class="rc-label" for="url">{{ t('job.field.url') }}</label>
+        <input class="rc-input" id="url" name="url" type="url" value="{{ form.url }}" aria-describedby="url-ayuda{% if errors.url %} url-error{% endif %}"{% if errors.url %} aria-invalid="true"{% endif %}>
+        <span class="rc-hint" id="url-ayuda">{{ t('job.field.url_help') }}</span>
+        {{ field_error(errors, 'url') }}
+      </div>
+      <div class="rc-field span-6">
+        <label class="rc-label" for="title">{{ t('job.field.title') }}</label>
+        <input class="rc-input" id="title" name="title" value="{{ form.title }}" aria-describedby="title-ayuda">
+        <span class="rc-hint" id="title-ayuda">{{ t('job.field.title_help') }}</span>
+        {{ field_error(errors, 'title') }}
+      </div>
+      <div class="rc-field span-6">
+        <label class="rc-label" for="company">{{ t('job.field.company') }}</label>
+        <input class="rc-input" id="company" name="company" value="{{ form.company }}">
+        {{ field_error(errors, 'company') }}
+      </div>
+    </div>
+  </div>
+  <div class="rc-form-actions rc-dialog__foot">
+    <button class="rc-btn rc-btn--primary" type="submit" data-busy="{{ t('ai.working') }}">{{ t('job.new.submit') }}</button>
+    <a class="rc-btn" href="{{ url_for('dashboard.index') }}">{{ t('form.cancel') }}</a>
+    <span class="rc-hint">{{ t('job.new.wait') }}</span>
+  </div>
+</form>
+{% endblock %}

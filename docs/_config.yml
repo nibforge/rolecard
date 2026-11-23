@@ -1,0 +1,7 @@
+# GitHub Pages (Jekyll, default theme, no extra plugins). Publishes this docs/ folder.
+title: rolecard
+description: A local, private assistant for your job search.
+exclude:
+  - capturas
+  - runbooks
+  - archivo

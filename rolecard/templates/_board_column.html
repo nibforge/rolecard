@@ -1,0 +1,18 @@
+{# One page of a board column: its cards and, if more are left, the button that brings
+   the next page in their place (``col``, ``filters``, ``today``). Without JS, the
+   button opens the list filtered by this status. #}
+{% from "_macros.html" import follow_up_label, score_badge, source_credit %}
+{% from "_icons.html" import icon %}
+{% for job in col.jobs %}
+<article class="rc-card">
+  <a class="rc-card__title" href="{{ url_for('jobs.show', job_id=job.id) }}">{{ job.title or t('job.untitled') }}</a>{{ score_badge(job.score) }}
+  <span class="rc-card__meta"><span class="co">{{ job.company or t('board.no_company') }}</span>
+    {%- if job.source in source_registry %}<i class="rc-dot"></i>{{ source_credit(job) }}{% if job.url %}<i class="rc-dot"></i><a href="{{ job.url }}" target="_blank" rel="noopener noreferrer">{{ t('job.original') }}</a>{% endif %}
+    {%- else %}<i class="rc-dot"></i>{{ t('board.source_manual') }}{% endif %}
+    {%- if job.follow_up_on %}<span class="due{% if job.follow_up_on >= today %} due--later{% endif %}">{{ icon('clock', 12) }}{{ follow_up_label(job.follow_up_on, today) }}</span>{% endif %}</span>
+</article>
+{% endfor %}
+{% if col.remaining %}
+{% set next_url = url_for('board.column', status=col.status, page=col.page + 1, **filters.to_args()) %}
+<a class="rc-col__more" href="{{ url_for('jobs.index', status=col.status, **filters.to_args()) }}" hx-get="{{ next_url }}" hx-swap="outerHTML">{{ t('board.more', count=[col.remaining, page_size] | min, remaining=col.remaining | num) }}</a>
+{% endif %}

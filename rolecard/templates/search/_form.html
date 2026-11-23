@@ -1,0 +1,42 @@
+{% from "_macros.html" import field_error, csrf_field %}
+{% from "_icons.html" import icon %}
+{% set action = url_for('search.update', search_id=search.id) if search else url_for('search.create') %}
+{% if errors %}<div class="alerta alerta-error" role="alert">{{ t('form.has_errors') }}</div>{% endif %}
+<form class="rc-fieldset" method="post" action="{{ action }}" data-busy aria-label="{{ t('search.edit') if search else t('search.new') }}">
+  {{ csrf_field() }}
+  <div class="rc-form">
+    <label class="rc-field span-4" for="name"><span class="rc-label">{{ t('search.field.name') }}</span>
+      <input class="rc-input" id="name" name="name" value="{{ form.name }}" maxlength="200" placeholder="{{ t('search.name_placeholder') }}" aria-describedby="name-help{% if errors.name %} name-error{% endif %}"{% if errors.name %} aria-invalid="true"{% endif %}>
+      <span class="rc-hint" id="name-help">{{ t('search.help.name') }}</span>{{ field_error(errors, 'name') }}</label>
+    {% for key in ('query', 'location') %}
+    <label class="rc-field span-4" for="{{ key }}"><span class="rc-label">{{ t('search.field.' ~ key) }}</span>
+      <input class="rc-input" id="{{ key }}" name="{{ key }}" value="{{ form[key] }}" maxlength="200" aria-describedby="{{ key }}-help{% if errors[key] %} {{ key }}-error{% endif %}"{% if errors[key] %} aria-invalid="true"{% endif %}>
+      <span class="rc-hint" id="{{ key }}-help">{{ t('search.help.' ~ key) }}</span>{{ field_error(errors, key) }}</label>
+    {% endfor %}
+    {% for key in ('required', 'excluded') %}
+    <label class="rc-field span-4" for="{{ key }}"><span class="rc-label">{{ t('search.field.' ~ key) }}</span>
+      <input class="rc-input" id="{{ key }}" name="{{ key }}" value="{{ form[key] | join(', ') }}" maxlength="1000" aria-describedby="words-help"></label>
+    {% endfor %}
+    <label class="rc-field span-4" for="remote"><span class="rc-label">{{ t('search.field.remote') }}</span>
+      <select class="rc-select" id="remote" name="remote">
+        {% for r in remote_choices %}<option value="{{ r }}"{% if form.remote == r %} selected{% endif %}>{{ t('search.remote.' ~ r) }}</option>{% endfor %}
+      </select>{{ field_error(errors, 'remote') }}</label>
+    <p class="rc-hint span-12" id="words-help">{{ t('search.help.words') }}</p>
+    <fieldset class="rc-field rc-bare span-12"{% if errors.sources %} aria-invalid="true" aria-describedby="sources-error"{% endif %}>
+      <legend class="rc-label">{{ t('search.field.sources') }}</legend>
+      <div class="rc-row">
+        {% for s in sources %}
+        <label class="rc-chip"><input type="checkbox" name="sources" value="{{ s.name }}"{% if s.name in form.sources %} checked{% endif %}>{{ icon('check', 10) }}{{ s.label }}</label>
+        {% if not s.enabled %}<span class="rc-hint">{{ t('search.source_off') }}</span>{% elif s.missing %}<span class="rc-hint">{{ t('search.status.not_configured') }} · <a href="{{ url_for('settings.edit', _anchor='fuentes') }}">{{ t('search.to_settings') }}</a></span>{% endif %}
+        {% endfor %}
+      </div>
+      <span class="rc-hint">{{ t('search.help.spain') }}</span>{{ field_error(errors, 'sources') }}
+    </fieldset>
+  </div>
+  <div class="rc-form-actions">
+    <button class="rc-btn rc-btn--primary rc-btn--lg" type="submit" name="then" value="{{ 'run' }}">{{ icon('search', 14) }}{{ t('search.run_now') }}</button>
+    <button class="rc-btn" type="submit">{{ t('search.save_changes') if search else t('search.save') }}</button>
+    <span class="rc-hint" data-busy-label hidden>{{ t('search.running') }}</span>
+    {% if search %}<button class="rc-btn rc-btn--ghost rc-btn--danger rc-push" type="submit" formaction="{{ url_for('search.delete', search_id=search.id) }}" data-confirm="{{ t('search.delete_confirm') }}" title="{{ t('search.delete_help') }}">{{ t('search.delete') }}</button>{% endif %}
+  </div>
+</form>

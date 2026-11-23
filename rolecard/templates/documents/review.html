@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ t('document.title.' ~ doc.kind) }}{% endblock %}
+{% block crumbs %}<a class="rc-muted" href="{{ url_for('board.index') }}">{{ t('nav.offers') }}</a>{{ icon('chevron', 12) }}<a class="rc-muted" href="{{ url_for('jobs.show', job_id=job.id) }}">{{ job.title or t('job.untitled') }}</a>{{ icon('chevron', 12) }}<b>{{ t('document.title.' ~ doc.kind) }}</b>{% endblock %}
+{% block header_meta %}<span class="rc-subtle rc-small">{{ t('document.language.' ~ doc.language) }}</span>{% endblock %}
+{% block actions %}
+{% if kinds | length > 1 %}<nav class="rc-segmented" aria-label="{{ t('document.switch') }}">
+  {% for kind in kinds %}
+  <a href="{{ url_for('documents.review', job_id=job.id, kind=kind) }}"{% if kind == doc.kind %} aria-current="page"{% endif %}>{{ t('document.short.' ~ kind) }}</a>
+  {% endfor %}
+</nav>{% endif %}
+<form method="post" action="{{ url_for('documents.generate', job_id=job.id, kind=doc.kind) }}" data-confirm="{{ t('document.regenerate_confirm') }}">
+  {{ csrf_field() }}<input type="hidden" name="replace" value="1">
+  <button class="rc-btn" type="submit" data-busy="{{ t('ai.working') }}">{{ t('document.regenerate') }}</button>
+</form>
+{% endblock %}
+{% block page_class %}{{ 'rc-page--wide' }}{% endblock %}
+{% block content %}
+<p class="rc-hint">{{ t('document.intro') }}</p>
+{% include "documents/_document.html" %}
+{% endblock %}

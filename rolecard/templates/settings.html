@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_error, csrf_field %}
+{% block title %}{{ t('settings.title') }}{% endblock %}
+{% block own_h1 %}{{ 'yes' }}{% endblock %}
+{% block header_meta %}<span class="rc-small rc-subtle rc-ellipsis">{{ t('settings.intro') }}</span>{% endblock %}
+{% block page_class %}{{ 'rc-page--narrow rc-page--rows' }}{% endblock %}
+{% block content %}
+<h1 class="solo-lectores">{{ t('settings.title') }}</h1>
+{% if errors %}<div class="alerta alerta-error" role="alert">{{ t('form.has_errors') }}</div>{% endif %}
+
+<form class="rc-settings-row rc-settings-row--first" method="post" action="{{ url_for('settings.save') }}" aria-labelledby="ia-titulo">
+  {{ csrf_field() }}
+  <div class="lead"><h2 class="rc-h2" id="ia-titulo">{{ t('settings.ai') }}</h2><p class="rc-small rc-muted">{{ t('settings.ai_lead') }}</p></div>
+  <div class="ctl">
+    <div class="rc-radio-list" role="radiogroup" aria-label="{{ t('settings.provider') }}"{% if errors.provider %} aria-invalid="true" aria-describedby="provider-error"{% endif %}>
+      {% for p in providers %}
+      <label><input type="radio" name="provider" value="{{ p }}"{% if form.provider == p %} checked{% endif %}>
+        <span class="grow"><span class="rc-strong">{{ t('ai.provider.' ~ p) }}</span>{% if form.provider == p %} <span class="rc-badge rc-badge--success">{{ t('settings.in_use', provider=t('ai.provider.' ~ active_provider)) }}</span>{% endif %}
+          <span class="rc-small rc-muted rc-block">{{ t('settings.provider_help.' ~ p) }}{% if p == 'claude' %} {{ t('settings.claude_found') if claude_found else t('settings.claude_missing') }}{% endif %}</span></span></label>
+      {% endfor %}
+    </div>
+    {% if cloud %}<div class="rc-callout rc-callout--warning" id="provider-cloud">{{ icon('info') }}<div>{{ t('settings.cloud_notice', provider=t('ai.provider.' ~ active_provider)) }}</div></div>{% endif %}
+    {{ field_error(errors, 'provider') }}
+    <details class="rc-details"{% if errors.base_url or errors.model or errors.api_key or form.provider == 'openai' %} open{% endif %}>
+      <summary>{{ t('ai.provider.openai') }} <span class="meta">{{ t('settings.openai_only') }}</span></summary>
+      <div class="body"><div class="rc-form">
+        <label class="rc-field span-8" for="base_url"><span class="rc-label">{{ t('settings.base_url') }}</span>
+          <input class="rc-input" id="base_url" name="base_url" type="url" value="{{ form.base_url }}" placeholder="{{ t('settings.base_url_example') }}" aria-describedby="base_url-help{% if errors.base_url %} base_url-error{% endif %}"{% if errors.base_url %} aria-invalid="true"{% endif %}>
+          <span class="rc-hint" id="base_url-help">{{ t('settings.base_url_help') }}</span>{{ field_error(errors, 'base_url') }}</label>
+        <label class="rc-field span-4" for="model"><span class="rc-label">{{ t('settings.model') }}</span>
+          <input class="rc-input" id="model" name="model" value="{{ form.model }}"{% if errors.model %} aria-invalid="true" aria-describedby="model-error"{% endif %}>{{ field_error(errors, 'model') }}</label>
+        <div class="rc-field span-12"><label class="rc-label" for="api_key">{{ t('settings.api_key') }}</label>
+          <input class="rc-input" id="api_key" name="api_key" type="password" autocomplete="new-password" spellcheck="false" autocapitalize="off" maxlength="500" aria-describedby="api_key-help{% if errors.api_key %} api_key-error{% endif %}"{% if errors.api_key %} aria-invalid="true"{% endif %}{% if key_source %} placeholder="{{ t('settings.key_hidden') }}"{% endif %}{% if key_source == 'env' %} disabled{% endif %}>
+          <span class="rc-hint" id="api_key-help">{{ t('settings.key.' ~ (key_source or 'none')) }}</span>{{ field_error(errors, 'api_key') }}
+          {% if key_source == 'config' %}<label class="rc-check rc-small"><input type="checkbox" name="clear_key" value="1">{{ t('settings.clear_key') }}</label>{% endif %}</div>
+      </div></div>
+    </details>
+    <div class="rc-row rc-row--end">
+      <label class="rc-field w-xs" for="timeout"><span class="rc-label">{{ t('settings.timeout') }}</span>
+        <input class="rc-input rc-num" id="timeout" name="timeout" type="number" min="1" max="3600" value="{{ form.timeout }}" aria-describedby="timeout-help{% if errors.timeout %} timeout-error{% endif %}"{% if errors.timeout %} aria-invalid="true"{% endif %}></label>
+      <span class="rc-hint" id="timeout-help">{{ t('settings.timeout_help') }}</span>{{ field_error(errors, 'timeout') }}
+    </div>
+    <div class="rc-row">
+      <button class="rc-btn rc-btn--primary" type="submit">{{ t('settings.save') }}</button>
+      <button class="rc-btn" type="submit" formaction="{{ url_for('settings.test') }}" hx-post="{{ url_for('settings.test') }}" hx-target="#prueba" hx-indicator="#prueba-cargando">{{ t('settings.test') }}</button>
+      <span id="prueba-cargando" class="htmx-indicator">{{ t('ai.working') }}</span>
+      <span class="rc-hint">{{ t('settings.test_help') }}</span>
+    </div>
+    <div id="prueba" aria-live="polite">{% include "_test_result.html" %}</div>
+  </div>
+</form>
+
+<form class="rc-settings-row" id="fuentes" method="post" action="{{ url_for('settings.save_sources') }}" aria-labelledby="fuentes-titulo">
+  {{ csrf_field() }}
+  <div class="lead"><h2 class="rc-h2" id="fuentes-titulo">{{ t('settings.sources') }}</h2><p class="rc-small rc-muted">{{ t('settings.sources_help') }}</p></div>
+  <div class="ctl">
+    {{ field_error(errors, 'sources') }}
+    <ul class="rc-panel rc-list rc-sources-list">
+      {% for s in sources.list %}
+      <li>
+        <div class="rc-row rc-source-row">
+          <input class="rc-switch" type="checkbox" id="enabled_{{ s.name }}" name="enabled_{{ s.name }}" value="1"{% if s.enabled %} checked{% endif %}>
+          <label class="grow" for="enabled_{{ s.name }}"><span class="rc-strong rc-block">{{ s.label }}</span><span class="rc-small rc-subtle">{{ t('settings.source_desc.' ~ s.name) }}</span></label>
+          {% if s.missing %}<span class="rc-badge rc-badge--warning">{{ t('settings.sources_missing') }}</span>{% else %}<span class="rc-badge rc-badge--success">{{ t('settings.sources_ready') }}</span>{% endif %}
+        </div>
+        {% if s.name == 'adzuna' %}
+        <div class="rc-form rc-source-keys">
+          {% for key, origin in sources.origins.items() %}
+          <div class="rc-field span-12"><label class="rc-label" for="{{ key }}">{{ t('settings.' ~ key) }}</label>
+            <input class="rc-input" id="{{ key }}" name="{{ key }}" type="password" autocomplete="new-password" spellcheck="false" autocapitalize="off" maxlength="500" aria-describedby="{{ key }}-help"{% if origin %} placeholder="{{ t('settings.key_hidden') }}"{% endif %}{% if origin == 'env' %} disabled{% endif %}>
+            <span class="rc-hint" id="{{ key }}-help">{{ t('settings.source_key.' ~ (origin or 'none'), var=sources.env[key]) }}</span>
+            {% if origin == 'file' %}<label class="rc-check rc-small"><input type="checkbox" name="clear_{{ key }}" value="1">{{ t('settings.clear_key') }}</label>{% endif %}</div>
+          {% endfor %}
+          <label class="rc-field span-4" for="adzuna_country"><span class="rc-label">{{ t('settings.adzuna_country') }}</span>
+            <select class="rc-select" id="adzuna_country" name="adzuna_country">
+              {% for c in sources.countries %}<option value="{{ c }}"{% if c == sources.country %} selected{% endif %}>{{ c | upper }}</option>{% endfor %}
+            </select></label>
+        </div>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    <div><button class="rc-btn rc-btn--primary" type="submit">{{ t('settings.sources_save') }}</button></div>
+  </div>
+</form>
+
+<form class="rc-settings-row" id="apariencia" method="post" action="{{ url_for('settings.save_ui') }}" aria-labelledby="ui-titulo">
+  {{ csrf_field() }}
+  <div class="lead"><h2 class="rc-h2" id="ui-titulo">{{ t('settings.ui') }}</h2><p class="rc-small rc-muted">{{ t('settings.ui_lead') }}</p></div>
+  <div class="ctl">
+    <div class="rc-row rc-row--end rc-row--wide">
+      <label class="rc-field w-sm" for="language"><span class="rc-label">{{ t('settings.language') }}</span>
+        <select class="rc-select" id="language" name="language">
+          {% for code in languages %}<option value="{{ code }}"{% if code == ui.language %} selected{% endif %}>{{ t('settings.language.' ~ (code or 'auto')) }}</option>{% endfor %}
+        </select></label>
+      <fieldset class="rc-field rc-bare"><legend class="rc-label">{{ t('settings.theme') }}</legend>
+        <div class="rc-segmented">
+          {% for theme in themes %}<label><input class="solo-lectores" type="radio" name="theme" value="{{ theme }}"{% if theme == ui.theme %} checked{% endif %}>{{ t('settings.theme.' ~ theme) }}</label>{% endfor %}
+        </div></fieldset>
+    </div>
+    <div><button class="rc-btn rc-btn--primary" type="submit">{{ t('settings.save') }}</button></div>
+  </div>
+</form>
+{% endblock %}

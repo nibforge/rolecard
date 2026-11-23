@@ -1,0 +1,45 @@
+{% from "_macros.html" import csrf_field %}
+{% from "_icons.html" import icon %}
+<section class="rc-panel" aria-labelledby="documentos">
+  <h2 class="rc-panel__head" id="documentos">{{ t('job.documents.title') }}</h2>
+  <ul class="rc-list">
+    {% for kind, doc in documents.items() %}
+    {% set state = doc_state.get(kind) %}
+    <li>
+      <span class="rc-muted rc-icon">{{ icon('doc') }}</span>
+      <div class="grow">
+        <div class="rc-strong">{{ t('document.title.' ~ kind) }}</div>
+        <div class="rc-small">
+          {%- if not doc %}<span class="rc-subtle">{{ t('job.doc.none') }}</span>
+          {%- elif state.blocked is none %}<span class="rc-text-success">{{ t('job.doc.reviewed') }}</span>
+          {%- elif state.pending %}<span class="rc-text-danger">{{ t('job.doc.pending', count=state.pending) }}</span>
+          {%- elif state.blocked == 'structure_changed' %}<span class="rc-text-danger">{{ t('job.doc.outdated') }}</span>
+          {%- else %}<span class="rc-text-warning">{{ t('job.doc.not_reviewed') }}</span>{% endif -%}
+        </div>
+      </div>
+      {% if doc %}
+      <a class="rc-btn rc-btn--sm{% if state.blocked %} rc-btn--primary{% endif %}" href="{{ url_for('documents.review', job_id=job.id, kind=kind) }}">{{ t('job.documents.view.' ~ kind) }}</a>
+      {% elif has_profile and has_provider %}
+      <form method="post" action="{{ url_for('documents.generate', job_id=job.id, kind=kind) }}">
+        {{ csrf_field() }}<button class="rc-btn rc-btn--sm" type="submit" data-busy="{{ t('ai.working') }}">{{ t('job.documents.prepare.' ~ kind) }}</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <div class="rc-panel__body rc-panel__foot rc-stack">
+    {% if not has_profile or not has_provider %}<p class="rc-hint">{{ t('job.documents.needs') }}</p>{% endif %}
+    <form id="idioma-docs" method="post" action="{{ url_for('jobs.language', job_id=job.id) }}" class="rc-props" hx-post="{{ url_for('jobs.language', job_id=job.id) }}" hx-trigger="change" hx-target="#principal" hx-select="#principal" hx-swap="outerHTML" data-autosave>
+      {{ csrf_field() }}
+      <label for="doc-language">{{ t('job.documents.language') }}</label>
+      <span class="rc-row">
+        <select class="rc-select rc-select--sm w-sm" id="doc-language" name="language">
+          <option value=""{% if not job.doc_language %} selected{% endif %}>{{ t('job.documents.language_auto', language=t('document.language.' ~ doc_language)) }}</option>
+          {% for lang in doc_languages %}<option value="{{ lang }}"{% if job.doc_language == lang %} selected{% endif %}>{{ t('document.language.' ~ lang) }}</option>{% endfor %}
+        </select>
+        <noscript><button class="rc-btn rc-btn--sm" type="submit">{{ t('job.documents.language_save') }}</button></noscript>
+        <span class="rc-saved" data-saved role="status" hidden>{{ t('form.saved') }}</span>
+      </span>
+    </form>
+  </div>
+</section>

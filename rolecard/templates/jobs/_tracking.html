@@ -1,0 +1,33 @@
+{% from "_macros.html" import csrf_field, follow_up_badge %}
+<section class="rc-panel" aria-labelledby="seguimiento">
+  <h2 class="rc-panel__head" id="seguimiento">{{ t('tracking.title') }}</h2>
+  <div class="rc-panel__body rc-stack">
+    <form id="estado" method="post" action="{{ url_for('jobs.status', job_id=job.id) }}" class="rc-props" hx-post="{{ url_for('jobs.status', job_id=job.id) }}" hx-trigger="change" hx-target="#principal" hx-select="#principal" hx-swap="outerHTML" data-autosave>
+      {{ csrf_field() }}
+      <label for="status">{{ t('tracking.status') }}</label>
+      <span class="rc-row">
+        <select class="rc-select rc-select--sm w-sm" id="status" name="status">
+          {% for s in statuses %}<option value="{{ s }}"{% if s == job.status %} selected{% endif %}>{{ t('status.' ~ s) }}</option>{% endfor %}
+        </select>
+        <noscript><button class="rc-btn rc-btn--sm" type="submit">{{ t('tracking.change_status') }}</button></noscript>
+        <span class="rc-saved" data-saved role="status" hidden>{{ t('form.saved') }}</span>
+      </span>
+    </form>
+    <form id="seguimiento-form" method="post" action="{{ url_for('jobs.tracking', job_id=job.id) }}" class="rc-props" hx-post="{{ url_for('jobs.tracking', job_id=job.id) }}" hx-trigger="change" hx-target="#principal" hx-select="#principal" hx-swap="outerHTML" data-autosave>
+      {{ csrf_field() }}
+      <label for="follow_up_on">{{ t('tracking.follow_up') }}</label>
+      <span class="rc-row">
+        <input class="rc-input rc-input--sm w-sm" id="follow_up_on" name="follow_up_on" type="date" value="{{ job.follow_up_on.isoformat() if job.follow_up_on else '' }}">
+        {% if job.follow_up_on %}{{ follow_up_badge(job.follow_up_on, today) }}{% endif %}
+      </span>
+      <label for="notes">{{ t('tracking.notes') }}</label>
+      <span class="rc-stack rc-stack--tight"><textarea class="rc-textarea w-full" id="notes" name="notes" rows="3">{{ job.notes }}</textarea>
+      <span><noscript><button class="rc-btn rc-btn--sm rc-btn--primary" type="submit">{{ t('tracking.save') }}</button></noscript><span class="rc-saved" data-saved role="status" hidden>{{ t('form.saved') }}</span></span></span>
+    </form>
+    <dl class="rc-props">
+      <dt>{{ t('board.source') }}</dt>
+      <dd class="rc-muted">{% if job.source in source_registry %}{{ source_registry[job.source].label }}{% else %}{{ t('board.source_manual') }}{% endif %}</dd>
+      {% if job.url %}<dt>{{ t('job.link') }}</dt><dd class="rc-ellipsis"><a href="{{ job.url }}" target="_blank" rel="noopener noreferrer">{{ job.url | replace('https://', '') | replace('http://', '') }}</a></dd>{% endif %}
+    </dl>
+  </div>
+</section>

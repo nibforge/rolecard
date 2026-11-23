@@ -1,0 +1,31 @@
+{# Filters shared by the board and the list; ``view`` is 'board' or 'list'. The form
+   keeps the list's order and page size; the switch keeps the filters. Any change applies
+   the filters at once (htmx swaps #offers); without JS, the <noscript> button does. #}
+{% from "_icons.html" import icon %}
+<form class="rc-toolbar rc-toolbar--bare" method="get" action="{{ url_for('board.index' if view == 'board' else 'jobs.index') }}" role="search" aria-label="{{ t('board.filters') }}" hx-get="{{ url_for('board.index' if view == 'board' else 'jobs.index') }}" hx-trigger="change, input delay:400ms from:#q, submit" hx-sync="this:replace">
+  <span class="rc-input-group">{{ icon('search', 14) }}<input id="q" name="q" type="search" data-shortcut-search value="{{ filters.query }}" placeholder="{{ t('board.search_placeholder') }}" aria-label="{{ t('board.search') }}"></span>
+  {% if view == 'list' %}<select class="rc-select rc-select--sm w-sm" name="status" aria-label="{{ t('list.col.status') }}">
+    <option value="">{{ t('list.col.status') }}: {{ t('list.any_status') }}</option>
+    {% for s in statuses %}<option value="{{ s }}"{% if params.status == s %} selected{% endif %}>{{ t('status.' ~ s) }}</option>{% endfor %}
+  </select>{% endif %}
+  <select class="rc-select rc-select--sm w-sm" name="source" aria-label="{{ t('board.source') }}">
+    <option value="">{{ t('board.source') }}: {{ t('board.any_source') }}</option>
+    <option value="{{ 'manual' }}"{% if filters.source == 'manual' %} selected{% endif %}>{{ t('board.source_manual') }}</option>
+    {% for name, info in source_registry.items() %}<option value="{{ name }}"{% if filters.source == name %} selected{% endif %}>{{ info.label }}</option>{% endfor %}
+  </select>
+  <select class="rc-select rc-select--sm w-xs" name="min" aria-label="{{ t('board.min_score') }}">
+    <option value="">{{ t('board.score') }} ≥</option>
+    {% for value in (50, 70, 85) %}<option value="{{ value }}"{% if filters.min_score == value %} selected{% endif %}>{{ t('board.score') }} ≥ {{ value }}</option>{% endfor %}
+  </select>
+  <label class="rc-chip"><input type="checkbox" name="unscored" value="1"{% if filters.unscored_only %} checked{% endif %}>{{ t('board.unscored_only') }}</label>
+  <label class="rc-chip"><input type="checkbox" name="overdue" value="1"{% if filters.overdue_only %} checked{% endif %}>{{ t('board.overdue_only') }}</label>
+  {% if view == 'list' %}{% for name, value in params.to_args(status='', page=1).items() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}{% endif %}
+  <noscript><button class="rc-btn rc-btn--sm" type="submit">{{ t('board.filter') }}</button></noscript>
+  <div class="end">
+    <label class="rc-check rc-small rc-muted"><input type="checkbox" name="discarded" value="1"{% if filters.show_discarded %} checked{% endif %}> {{ t('board.show_discarded') }}</label>
+    <div class="rc-segmented" role="group" aria-label="{{ t('offers.view') }}">
+      <a class="rc-btn rc-btn--sm rc-btn--ghost" href="{{ url_for('board.index', **filters.to_args()) }}"{% if view == 'board' %} aria-current="page"{% endif %}>{{ icon('board', 14) }}{{ t('offers.view_board') }}</a>
+      <a class="rc-btn rc-btn--sm rc-btn--ghost" href="{{ url_for('jobs.index', **filters.to_args()) }}"{% if view == 'list' %} aria-current="page"{% endif %}>{{ icon('list', 14) }}{{ t('offers.view_list') }}</a>
+    </div>
+  </div>
+</form>

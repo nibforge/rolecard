@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="{{ doc.language }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ t('document.title.' ~ doc.kind) }}{% if job.company %} · {{ job.company }}{% endif %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body>
+  <div class="no-imprimir">
+    <p>{{ t('document.print.hint') }}</p>
+    <button type="button" data-print>{{ t('document.print.button') }}</button>
+    <a href="{{ url_for('documents.review', job_id=job.id, kind=doc.kind) }}">{{ t('document.title.' ~ doc.kind) }}</a>
+  </div>
+  <main class="hoja">
+    {% set items = namespace(open=false) %}
+    {% for style, text in lines %}
+    {% if style == 'bullet' and not items.open %}<ul>{% set items.open = true %}{% endif %}
+    {% if style != 'bullet' and items.open %}</ul>{% set items.open = false %}{% endif %}
+    {% if style == 'name' %}<h1>{{ text }}</h1>
+    {% elif style == 'section' %}<h2>{{ text }}</h2>
+    {% elif style == 'entry' %}<h3>{{ text }}</h3>
+    {% elif style == 'meta' %}<p class="meta">{{ text }}</p>
+    {% elif style == 'bullet' %}<li>{{ text }}</li>
+    {% else %}<p>{{ text }}</p>{% endif %}
+    {% endfor %}
+    {% if items.open %}</ul>{% endif %}
+  </main>
+</body>
+</html>

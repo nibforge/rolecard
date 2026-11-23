@@ -1,0 +1,26 @@
+{
+ "data": [
+  {
+   "slug": "python-data-engineer-hamburg-4",
+   "company_name": "Fiktive Daten KG",
+   "title": "Data Engineer Python",
+   "description": "<p>Python, Airflow und SQL in einer vollständig erfundenen Testanzeige aus Hamburg.</p>",
+   "remote": false,
+   "url": "https://www.arbeitnow.com/jobs/companies/fiktive-daten/python-data-engineer-hamburg-4",
+   "tags": [],
+   "job_types": [],
+   "location": "Hamburg",
+   "created_at": 1795100000
+  }
+ ],
+ "links": {
+  "first": "https://www.arbeitnow.com/api/job-board-api?page=1",
+  "last": null,
+  "prev": "https://www.arbeitnow.com/api/job-board-api?page=1",
+  "next": null
+ },
+ "meta": {
+  "current_page": 2,
+  "per_page": 300
+ }
+}

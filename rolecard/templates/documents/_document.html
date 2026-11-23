@@ -1,0 +1,97 @@
+{% from "_macros.html" import csrf_field %}
+{% from "documents/_sentence.html" import sentence, editor %}
+{% from "_icons.html" import icon %}
+{% macro sentences(ids) -%}{% for sid in ids %}{{ sentence(job, doc, sid, content.sentences[sid], source_text) }} {% endfor %}{%- endmacro %}
+{% set live = content.sentences.values() | rejectattr('state', 'equalto', 'deleted') | list %}
+{% set unsourced = live | selectattr('state', 'equalto', 'unsourced') | list | length %}
+{% set offer = pending - unsourced %}
+<div id="documento"><div class="rc-stack">
+  {% if error %}<div class="rc-callout rc-callout--danger" role="alert">{{ icon('warning') }}<div>{{ t(error) }}</div></div>{% endif %}
+  {% if content.sentences.values() | selectattr('reason', 'equalto', 'profile_changed') | list %}<div class="rc-callout rc-callout--warning" role="status">{{ icon('info') }}<div>{{ t('document.profile_changed') }}</div></div>{% endif %}
+  {% if blocked in ('structure_changed', 'offer_unconfirmed', 'unresolved') %}
+  <div class="rc-callout rc-callout--danger" role="status">{{ icon('warning') }}
+    <div><b>{{ t('document.blocked.' ~ blocked) }}</b>{% if blocked != 'structure_changed' and pending %} {{ t('document.pending', count=pending) }}{% endif %}</div>
+    {% if pending %}<a class="rc-btn rc-btn--sm" href="#documento" data-next-pending>{{ t('document.next_pending') }} <span class="rc-kbd">{{ 'J' }}</span></a>{% endif %}
+  </div>
+  {% elif blocked == 'not_reviewed' %}
+  <div class="rc-callout rc-callout--warning" role="status">{{ icon('info') }}
+    <div>{{ t('document.blocked.not_reviewed') }}</div>
+    <form method="post" action="{{ url_for('documents.mark_reviewed', job_id=job.id, kind=doc.kind) }}">{{ csrf_field() }}<button class="rc-btn rc-btn--sm rc-btn--primary" type="submit">{{ t('document.mark_reviewed') }}</button></form>
+  </div>
+  {% else %}
+  <div class="rc-callout rc-callout--success" role="status">{{ icon('check') }}
+    <div>{{ t('document.ready', date=doc.reviewed_at | localdatetime) }}</div>
+    <span class="rc-row rc-push">
+      <a class="rc-btn rc-btn--sm rc-btn--primary" href="{{ url_for('documents.pdf', job_id=job.id, kind=doc.kind) }}" download>{{ t('document.export.pdf') }}</a>
+      <a class="rc-btn rc-btn--sm" href="{{ url_for('documents.print_view', job_id=job.id, kind=doc.kind) }}" target="_blank" rel="noopener">{{ t('document.export.print') }}</a>
+      {% if doc.kind == 'letter' %}
+      <button class="rc-btn rc-btn--sm" type="button" data-copy="texto-carta" data-copied="{{ t('document.export.copied') }}">{{ t('document.export.copy') }}</button>
+      <pre id="texto-carta" hidden>{% for style, text in lines %}{{ text }}{% if not loop.last %}
+
+{% endif %}{% endfor %}</pre>
+      {% endif %}
+    </span>
+  </div>
+  {% endif %}
+  {% if substitutions %}<div class="rc-callout rc-callout--warning" role="status">{{ icon('info') }}<div>{{ t('document.substitutions', chars=substitutions | join(' ')) }}</div></div>{% endif %}
+  <div class="rc-row rc-review-bar">
+    {% set total = live | length %}
+    <span class="rc-row">
+      {% set ok_w = ((total - pending) * 160 / total) | round(1) if total else 0 %}
+      {% set offer_w = (offer * 160 / total) | round(1) if total else 0 %}
+      <svg class="rc-progress" width="160" height="6" viewBox="0 0 160 6" aria-hidden="true" focusable="false"><rect class="track" width="160" height="6"/><rect class="ok" width="{{ ok_w }}" height="6"/><rect class="offer" x="{{ ok_w }}" width="{{ offer_w }}" height="6"/><rect class="bad" x="{{ ok_w + offer_w }}" width="{{ (unsourced * 160 / total) | round(1) if total else 0 }}" height="6"/></svg>
+      <span class="rc-small rc-muted rc-num">{{ t('document.progress', done=total - pending, total=total) }}</span>
+    </span>
+    <span class="rc-legend">
+      <span><i class="rc-sw rc-sw--profile"></i>{{ t('document.legend.profile') }}</span>
+      <span><i class="rc-sw rc-sw--offer"></i>{{ t('document.legend.offer') }}</span>
+      <span><i class="rc-sw rc-sw--nosource"></i>{{ t('document.legend.nosource') }}</span>
+      <span class="rc-text-success">{{ t('document.legend.marks') }}</span>
+    </span>
+  </div>
+  <div class="rc-detail rc-review">
+    <div class="content rc-desk">
+      <article class="rc-paper rc-doc documento" lang="{{ doc.language }}">
+        {% if doc.kind == 'cv' %}
+        {% set h = content.header %}
+        <header>
+          <h2>{{ h.name }}</h2>
+          {% if h.headline %}<p>{{ h.headline }}</p>{% endif %}
+          <p class="meta-doc">{% for v in [h.email, h.phone, h.location] + (h.links or []) if v %}{{ v }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
+        </header>
+        {% for block in content.blocks %}
+        <section>
+          <h3>{{ t('document.section.' ~ block.type) }}</h3>
+          {% if block.type == 'summary' %}<p>{{ sentences(block.sentences) }}</p>
+          {% elif block.type in ('experience', 'projects') %}
+          {% for e in block.entries %}
+          <h4>{{ e.role or e.name }}{% if e.company %} · {{ e.company }}{% endif %}</h4>
+          {% if e.start or e.end or e.location %}<p class="meta-doc">{{ e.start }}{% if e.end %} – {{ e.end }}{% endif %}{% if e.location %} · {{ e.location }}{% endif %}</p>{% endif %}
+          {% if e.sentences %}<ul>{% for sid in e.sentences %}<li>{{ sentence(job, doc, sid, content.sentences[sid], source_text) }}</li>{% endfor %}</ul>{% endif %}
+          {% endfor %}
+          {% elif block.type == 'skills' %}<p>{{ block['items'] | join(' · ') }}</p>
+          {% elif block.type == 'education' %}
+          <ul>{% for e in block.entries %}<li>{{ e.degree }}{% if e.institution %} · {{ e.institution }}{% endif %}{% if e.start or e.end %} · {{ e.start }}{% if e.end %} – {{ e.end }}{% endif %}{% endif %}</li>{% endfor %}</ul>
+          {% elif block.type == 'languages' %}
+          <ul>{% for e in block.entries %}<li>{{ e.language }}{% if e.level %} · {{ e.level }}{% endif %}</li>{% endfor %}</ul>
+          {% endif %}
+        </section>
+        {% endfor %}
+        {% else %}
+        <p>{{ content.greeting }}</p>
+        {% for block in content.blocks %}<p>{{ sentences(block.sentences) }}</p>{% endfor %}
+        <p>{{ content.closing }}<br>{{ content.signature }}</p>
+        {% endif %}
+      </article>
+    </div>
+    <aside class="rail rc-inspector-rail" aria-label="{{ t('document.panel') }}">
+      <section class="rc-panel">
+        <h2 class="rc-panel__head">{{ t('document.panel') }}{% if pending %} <span class="rc-count">{{ t('document.pending_short', count=pending) }}</span>{% endif %}</h2>
+        <div class="rc-editors">
+          {% for sid, s in content.sentences.items() if s.state != 'deleted' %}{{ editor(job, doc, sid, s, source_text) }}{% endfor %}
+        </div>
+        <p class="rc-panel__body rc-small rc-subtle rc-keys"><span><span class="rc-kbd">{{ 'K' }}</span> {{ t('document.key.previous') }}</span><span><span class="rc-kbd">{{ 'J' }}</span> {{ t('document.key.next') }}</span></p>
+      </section>
+    </aside>
+  </div>
+</div></div>

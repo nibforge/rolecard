@@ -1,0 +1,161 @@
+/* rolecard design tokens (specs/004-rediseno/maquetas/sistema). Light by default; dark
+ follows prefers-color-scheme unless <html data-theme="light">, or is forced with
+ data-theme="dark". The data-tema selectors are the names metodo.mjs contraste reads.
+ Colours in hex only: the checker parses them. */
+
+:root {
+  --canvas: #f7f7f8;
+  --surface: #ffffff;
+  --surface-sunken: #f1f1f3;
+  --surface-hover: #e9e9ec;
+  --border: #e3e3e8;
+  --border-control: #8a8a94;
+  --text: #18181b;
+  --text-muted: #52525b;
+  --text-subtle: #6b6b74;
+  --accent: #5b45d6;
+  --accent-hover: #4c36c4;
+  --accent-subtle: #efecfd;
+  --accent-text: #4c36c4;
+  --on-accent: #ffffff;
+  --success: #1a7f37;
+  --success-subtle: #e7f5ea;
+  --warning: #8a5a00;
+  --warning-subtle: #fff4d4;
+  --danger: #c4202c;
+  --danger-subtle: #ffebe9;
+  --danger-solid: #c4202c;
+  --on-danger: #ffffff;
+  --focus: var(--accent);
+  --shadow-popover: 0 4px 16px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
+  /* the method contrast checker reads these names (metodo.mjs contraste) */
+  --fondo: #f7f7f8;
+  --superficie: #f1f1f3;
+  --superficie-alta: #ffffff;
+  --texto: #18181b;
+  --texto-suave: #52525b;
+  --borde-fuerte: #8a8a94;
+  --acento: #5b45d6;
+  --acento-texto: #ffffff;
+  --foco: #5b45d6;
+  --peligro: #c4202c;
+  --peligro-fondo: #ffebe9;
+  --exito: #1a7f37;
+  --exito-fondo: #e7f5ea;
+  --aviso: #8a5a00;
+  --aviso-fondo: #fff4d4;
+  --info: #4c36c4;
+  --info-fondo: #efecfd;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]):root:not([data-tema="claro"]) {
+    --canvas: #0e0e10;
+    --surface: #161619;
+    --surface-sunken: #1c1c20;
+    --surface-hover: #24242a;
+    --border: #2b2b31;
+    --border-control: #6b6b75;
+    --text: #ededf0;
+    --text-muted: #a3a3ad;
+    --text-subtle: #8c8c96;
+    --accent: #8b7cf6;
+    --accent-hover: #9584f7;
+    --accent-subtle: #241f45;
+    --accent-text: #a99cf8;
+    --on-accent: #0e0e10;
+    --success: #3fb950;
+    --success-subtle: #13261a;
+    --warning: #d9a43a;
+    --warning-subtle: #2b2210;
+    --danger: #f47067;
+    --danger-subtle: #2f1517;
+    --danger-solid: #b62324;
+    --on-danger: #ffffff;
+    --focus: var(--accent);
+    --shadow-popover: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+    /* the method contrast checker reads these names (metodo.mjs contraste) */
+    --fondo: #0e0e10;
+    --superficie: #1c1c20;
+    --superficie-alta: #161619;
+    --texto: #ededf0;
+    --texto-suave: #a3a3ad;
+    --borde-fuerte: #6b6b75;
+    --acento: #8b7cf6;
+    --acento-texto: #0e0e10;
+    --foco: #8b7cf6;
+    --peligro: #f47067;
+    --peligro-fondo: #2f1517;
+    --exito: #3fb950;
+    --exito-fondo: #13261a;
+    --aviso: #d9a43a;
+    --aviso-fondo: #2b2210;
+    --info: #a99cf8;
+    --info-fondo: #241f45;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"], :root[data-tema="oscuro"] {
+  --canvas: #0e0e10;
+  --surface: #161619;
+  --surface-sunken: #1c1c20;
+  --surface-hover: #24242a;
+  --border: #2b2b31;
+  --border-control: #6b6b75;
+  --text: #ededf0;
+  --text-muted: #a3a3ad;
+  --text-subtle: #8c8c96;
+  --accent: #8b7cf6;
+  --accent-hover: #9584f7;
+  --accent-subtle: #241f45;
+  --accent-text: #a99cf8;
+  --on-accent: #0e0e10;
+  --success: #3fb950;
+  --success-subtle: #13261a;
+  --warning: #d9a43a;
+  --warning-subtle: #2b2210;
+  --danger: #f47067;
+  --danger-subtle: #2f1517;
+  --danger-solid: #b62324;
+  --on-danger: #ffffff;
+  --focus: var(--accent);
+  --shadow-popover: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+  /* the method contrast checker reads these names (metodo.mjs contraste) */
+  --fondo: #0e0e10;
+  --superficie: #1c1c20;
+  --superficie-alta: #161619;
+  --texto: #ededf0;
+  --texto-suave: #a3a3ad;
+  --borde-fuerte: #6b6b75;
+  --acento: #8b7cf6;
+  --acento-texto: #0e0e10;
+  --foco: #8b7cf6;
+  --peligro: #f47067;
+  --peligro-fondo: #2f1517;
+  --exito: #3fb950;
+  --exito-fondo: #13261a;
+  --aviso: #d9a43a;
+  --aviso-fondo: #2b2210;
+  --info: #a99cf8;
+  --info-fondo: #241f45;
+  color-scheme: dark;
+}
+
+:root {
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-6:24px;
+  --space-8:32px;
+  --radius-sm:4px;
+  --radius-md:6px;
+  --radius-lg:8px;
+  --control-sm:24px;
+  --control-md:28px;
+  --control-lg:32px;
+  --sidebar:224px;
+  --font-sans: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+}

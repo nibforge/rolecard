@@ -1,0 +1,33 @@
+# Never commit: secrets, local tooling, build output and user data.
+.env
+*.pem
+*.key
+.claude/settings.local.json
+dist/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+htmlcov/
+.coverage
+instance/
+*.db
+node_modules/
+
+# rolecard: user data never lives in the repo (CVs, databases, local config).
+*.pdf
+*.docx
+*.doc
+*.sqlite
+*.sqlite3
+.rolecard/
+config.toml
+*.egg-info/
+build/
+.venv/
+.ruff_cache/
+# Demo folders from scripts/demo_data.py (as named in the README) and app leftovers.
+demo-folder/
+carpeta-demo/
+secret_key
+rolecard.log*

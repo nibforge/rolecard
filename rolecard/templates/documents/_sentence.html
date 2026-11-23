@@ -1,0 +1,59 @@
+{% from "_macros.html" import csrf_field %}
+{# A sentence reads by background, underline and mark, not by colour alone:
+   dotted = to confirm (cites only the offer, or names a term not in its sources), wavy = no source, ✓ confirmed, ✎ edited. #}
+{% macro needs_action(s) -%}
+{{ 'yes' if s.state == 'unsourced' or (s.state == 'sourced' and s.reason in ('offer_only', 'term')) else '' }}
+{%- endmacro %}
+
+{% macro look(s) -%}
+{{ 'nosource' if s.state == 'unsourced' else 'offer' if (s.reason in ('offer_only', 'term') and s.state == 'sourced') else s.state if s.state in ('confirmed', 'edited') else 'profile' }}
+{%- endmacro %}
+
+{% macro mark(s) -%}
+{{ {'nosource': '?', 'offer': '!', 'confirmed': '✓', 'edited': '✎'}.get(look(s), '') }}
+{%- endmacro %}
+
+{# Inline, in the document: a link to its editor in the side panel. #}
+{% macro sentence(job, doc, sid, s, source_text) -%}
+{%- if s.state == 'deleted' %}<span class="frase frase-deleted" id="frase-{{ sid }}"><del>{{ s.text }}</del> <small class="rc-badge">{{ t('document.state.deleted') }}</small></span>
+{%- else %}<a class="frase frase-{{ s.state }}{% if s.reason == 'offer_only' %} frase-oferta{% endif %} rc-s rc-s--{{ look(s) }}" id="frase-{{ sid }}" href="#editar-{{ sid }}" data-sentence="{{ sid }}"{% if needs_action(s) %} data-pending{% endif %}>{{ s.text }}{% set m = mark(s) %}{% if m %}<sup aria-hidden="true">{{ m }}</sup>{% endif %}</a>
+{%- endif %}
+{%- endmacro %}
+
+{# In the side panel: the sources and the actions of one sentence. #}
+{% macro editor(job, doc, sid, s, source_text) -%}
+{% set url = url_for('documents.sentence', job_id=job.id, kind=doc.kind, sid=sid) %}
+{% set pending = needs_action(s) %}
+{% set state = look(s) %}
+<div class="rc-editor" id="editar-{{ sid }}" data-editor="{{ sid }}">
+  <details class="frase-detalle"{% if pending %} open{% endif %}>
+    <summary>
+      <span class="rc-badge{% if state == 'nosource' %} rc-badge--danger{% elif state == 'offer' %} rc-badge--warning{% elif state in ('confirmed', 'edited') %} rc-badge--success{% endif %}">{{ t('document.state.' ~ s.state) }}</span>
+      <span class="grow">{{ s.text | truncate(60) }}</span>
+    </summary>
+    <div class="rc-editor__body">
+      {% if s.reason %}<p class="rc-small rc-muted">{{ t('document.reason.' ~ s.reason) }}</p>{% endif %}
+      {% if s.sources %}
+      <ul class="rc-sources">
+        {% for path in s.sources %}
+        <li class="rc-source"><code>{{ path }}</code><span>{% if path == 'offer' %}{{ t('document.source.offer') }}{% else %}{% set text = source_text(path) %}{% if text %}<q>{{ text }}</q>{% else %}{{ t('document.source.missing') }}{% endif %}{% endif %}</span></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="rc-source rc-subtle">{{ t('document.source.none') }}</p>{% endif %}
+      {% if s.original %}<p class="rc-hint">{{ t('document.original') }} <q>{{ s.original }}</q></p>{% endif %}
+      <form class="rc-stack" method="post" action="{{ url }}" hx-post="{{ url }}" hx-target="#documento" hx-swap="outerHTML">
+        {{ csrf_field() }}
+        <div class="rc-field">
+          <label class="rc-label" for="texto-{{ sid }}">{{ t('document.edit_label') }}</label>
+          <textarea class="rc-textarea" id="texto-{{ sid }}" name="text" rows="3" maxlength="600">{{ s.text }}</textarea>
+        </div>
+        <div class="rc-row">
+          {% if pending %}<button class="rc-btn rc-btn--sm rc-btn--primary" type="submit" name="action" value="{{ 'confirm' }}">{{ t('document.action.confirm') }}</button>{% endif %}
+          <button class="rc-btn rc-btn--sm" type="submit" name="action" value="{{ 'edit' }}">{{ t('document.action.edit') }}</button>
+          <button class="rc-btn rc-btn--sm rc-btn--ghost rc-btn--danger rc-push" type="submit" name="action" value="{{ 'delete' }}">{{ t('document.action.delete') }}</button>
+        </div>
+      </form>
+    </div>
+  </details>
+</div>
+{%- endmacro %}

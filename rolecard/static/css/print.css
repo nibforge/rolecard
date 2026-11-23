@@ -1,0 +1,19 @@
+/* Print view of a CV or cover letter: one column, plain text, for «Save as PDF». */
+:root { color-scheme: light; }
+body { margin: 0; background: #ffffff; color: #1c1a24; font: 11pt/1.45 Helvetica, Arial, sans-serif; }
+.hoja { max-width: 48rem; margin: 0 auto; padding: 2rem 1rem; }
+h1 { font-size: 20pt; margin: 0 0 0.2rem; }
+h2 { font-size: 13pt; margin: 1.2rem 0 0.3rem; border-bottom: 1px solid #c8c6d0; padding-bottom: 0.15rem; }
+h3 { font-size: 11pt; margin: 0.7rem 0 0.1rem; }
+p { margin: 0 0 0.6rem; }
+.meta { color: #555555; font-size: 9.5pt; margin: 0 0 0.2rem; }
+ul { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
+.no-imprimir { max-width: 48rem; margin: 1rem auto 0; padding: 0.75rem 1rem; background: #f1f0f6; border-radius: 6px; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+.no-imprimir p { margin: 0; }
+@page { size: A4; margin: 18mm 20mm; }
+@media print {
+  .no-imprimir { display: none; }
+  .hoja { max-width: none; padding: 0; }
+  h2, h3 { break-after: avoid; }
+  li, p { break-inside: avoid; }
+}

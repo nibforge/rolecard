@@ -1,0 +1,26 @@
+{% macro field_error(errors, name) -%}
+{% if errors.get(name) %}<span class="rc-hint rc-hint--error" id="{{ name }}-error">{{ t(errors[name]) }}</span>{% endif %}
+{%- endmacro %}
+
+{% macro csrf_field() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro source_credit(job) -%}
+{% set info = source_registry.get(job.source) %}
+{% if info %}<span class="fuente">{{ t('job.via') }} <a href="{{ info.site_url }}" target="_blank" rel="noopener noreferrer">{{ info.label }}</a></span>{% endif %}
+{%- endmacro %}
+
+{% macro follow_up_label(day, today) -%}
+{% if day < today %}{{ t('board.follow_up_overdue', date=day | shortdate) }}{% elif day == today %}{{ t('board.follow_up_today') }}{% else %}<span class="solo-lectores">{{ t('board.follow_up_on', date=day | shortdate) }}</span><span aria-hidden="true">{{ day | shortdate }}</span>{% endif %}
+{%- endmacro %}
+
+{% macro follow_up_badge(day, today) -%}
+{% if day < today %}<span class="rc-badge rc-badge--danger">{{ t('board.follow_up_overdue', date=day | shortdate) }}</span>{% elif day == today %}<span class="rc-badge rc-badge--warning">{{ t('board.follow_up_today') }}</span>{% else %}<span class="rc-badge">{{ t('board.follow_up_on', date=day | shortdate) }}</span>{% endif %}
+{%- endmacro %}
+
+{# ScoreBadge: high >= 75, mid 50-74, low < 50; unscored has a dashed border. #}
+{% macro score_badge(score, large=false) -%}
+{% if score is none %}<span class="rc-score rc-score--none{% if large %} rc-score--lg{% endif %}" title="{{ t('job.unscored') }}" role="img" aria-label="{{ t('job.unscored') }}">—</span>
+{%- else %}<span class="rc-score rc-score--{{ 'high' if score >= 75 else 'mid' if score >= 50 else 'low' }}{% if large %} rc-score--lg{% endif %}" role="img" aria-label="{{ t('job.score_label', score=score) }}">{{ score }}{% if large %}<small>/100</small>{% endif %}</span>{% endif %}
+{%- endmacro %}

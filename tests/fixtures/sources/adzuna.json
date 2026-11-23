@@ -1,0 +1,48 @@
+{
+ "__CLASS__": "Adzuna::API::Response::JobSearchResults",
+ "count": 2,
+ "mean": 40000,
+ "results": [
+  {
+   "__CLASS__": "Adzuna::API::Response::Job",
+   "id": "4001",
+   "redirect_url": "https://www.adzuna.es/land/ad/4001?se=abc&v=XYZ",
+   "title": "Desarrollador Python",
+   "company": {
+    "__CLASS__": "Adzuna::API::Response::Company",
+    "display_name": "Empresa Ficticia SL"
+   },
+   "location": {
+    "__CLASS__": "Adzuna::API::Response::Location",
+    "area": [
+     "España",
+     "Madrid"
+    ],
+    "display_name": "Madrid, Comunidad de Madrid"
+   },
+   "description": "Buscamos desarrollador Python con Flask y SQL para una oferta inventada que solo existe en los tests de rolecard…",
+   "created": "2026-11-03T08:00:00Z",
+   "salary_min": 30000,
+   "salary_max": 40000,
+   "contract_type": "permanent",
+   "category": {
+    "label": "IT",
+    "tag": "it-jobs"
+   }
+  },
+  {
+   "__CLASS__": "Adzuna::API::Response::Job",
+   "id": "4002",
+   "redirect_url": "https://www.adzuna.es/land/ad/4002",
+   "title": "TÃ©cnico de sistemas",
+   "company": {
+    "display_name": "Otra Empresa Inventada SA"
+   },
+   "location": {
+    "display_name": "Barcelona"
+   },
+   "description": "Administración de sistemas Linux y redes en una oferta totalmente inventada para pruebas automáticas…",
+   "created": "2026-11-04T08:00:00Z"
+  }
+ ]
+}

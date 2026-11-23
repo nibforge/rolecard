@@ -1,0 +1,12 @@
+{# Bulk actions on the ticked rows (the checkboxes point here with form="bulk"). #}
+{% from "_macros.html" import csrf_field %}
+<form id="bulk" class="rc-toolbar rc-bulk" method="post" action="{{ url_for('jobs.bulk') }}" aria-label="{{ t('bulk.label') }}">
+  {{ csrf_field() }}<input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+  <span class="rc-bulk__label">{{ t('bulk.label') }}</span>
+  <button class="rc-btn rc-btn--sm" type="submit" name="action" value="{{ 'score' }}">{{ t('bulk.score', count=score_batch) }}</button>
+  <select class="rc-select rc-select--sm w-sm" name="value" aria-label="{{ t('bulk.change_status') }}">
+    {% for s in statuses if s != 'discarded' %}<option value="{{ s }}">{{ t('status.' ~ s) }}</option>{% endfor %}
+  </select>
+  <button class="rc-btn rc-btn--sm" type="submit" name="action" value="{{ 'status' }}">{{ t('bulk.apply_status') }}</button>
+  <button class="rc-btn rc-btn--sm rc-btn--danger" type="submit" name="action" value="{{ 'discard' }}" data-confirm="{{ t('bulk.discard_confirm') }}">{{ t('bulk.discard') }}</button>
+</form>
