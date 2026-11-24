@@ -23,7 +23,7 @@ you may see, how to close rolecard and how to update without losing your data.
 
 ![An offer scored against your profile: what you meet and what is missing](docs/img/en/offer.png)
 
-> **Status:** early development (0.1.1). Not yet published on PyPI.
+> **Status:** early development (0.1.2). Not yet published on PyPI.
 
 ## Principles
 
@@ -83,7 +83,7 @@ venv/Scripts/python -m pytest -q
 
 rolecard was written with Claude Code, Anthropic's coding agent. Every change was
 specified, reviewed and accepted by the maintainer, and comes with tests: the suite has
-778 automated tests. Before the first public release the code was audited with
+816 automated tests. Before the first public release the code was audited with
 gitleaks, pip-audit, bandit, vulture and ruff, plus a manual security review; the
 summary is in [SECURITY.md](SECURITY.md#audit).
 

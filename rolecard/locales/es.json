@@ -541,5 +541,8 @@
   "console.already_running": "rolecard ya está en marcha en {url}. Lo abro en tu navegador.",
   "nav.quit": "Salir",
   "quit.title": "rolecard se ha cerrado",
-  "quit.done": "rolecard se ha cerrado. Ya puedes cerrar esta pestaña."
+  "quit.done": "rolecard se ha cerrado. Ya puedes cerrar esta pestaña.",
+  "job.error.text_taken": "Otra oferta ya tiene este mismo texto.",
+  "job.field.text_edit_help": "Si la fuente solo trajo un resumen, pega aquí la descripción completa de la web de la oferta y vuelve a puntuar.",
+  "job.snippet_hint": "Adzuna solo comparte un resumen de la descripción, no el texto completo. Para que la puntuación, el CV y la carta usen la oferta entera, pégala en «Editar datos» › «Texto de la oferta» y vuelve a puntuar."
 }

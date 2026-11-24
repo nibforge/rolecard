@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.2] - 2026-11-24
+
+Fixes.
+
+- Adzuna only shares a summary of each offer: the offer page now says so, and
+  **Edit details** has an **Offer text** field to paste the full description from the
+  offer's page (then score again).
+- Generating a cover letter no longer fails when one sentence cites many items of your
+  profile (`sources: has too many items`).
+- The tailored CV summary and the cover letter are written in the first person.
+
 ## [0.1.1] - 2026-11-23
 
 Download and open rolecard without git or a terminal.

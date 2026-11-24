@@ -129,13 +129,16 @@ def show(job_id: int):
 def update(job_id: int):
     job = _job(job_id)
     form = {k: request.form.get(k, "").strip() for k in ("title", "company", "location", "url")}
-    errors = svc.validate_fields(None, form["url"], form["title"], form["company"],
+    text = request.form.get("text")  # None: a form without the text field keeps it
+    text = text.strip() if text is not None else None
+    errors = svc.validate_fields(text, form["url"], form["title"], form["company"],
                                  form["location"])
     if errors:
         return _show(job, errors, 400)
-    result = svc.update_job(get_db(), job, **form)
+    result = svc.update_job(get_db(), job, text=text, **form)
     if isinstance(result, svc.Duplicate):
-        return _show(job, {"url": "job.error.url_taken"}, 409)
+        taken = "text" if text and result.job.text_key == svc.text_key(text) else "url"
+        return _show(job, {taken: f"job.error.{taken}_taken"}, 409)
     _saved("job.saved")
     return redirect(url_for("jobs.show", job_id=job.id))
 

@@ -541,5 +541,8 @@
   "console.already_running": "rolecard is already running at {url}. Opening it in your browser.",
   "nav.quit": "Quit",
   "quit.title": "rolecard has closed",
-  "quit.done": "rolecard has closed. You can close this tab now."
+  "quit.done": "rolecard has closed. You can close this tab now.",
+  "job.error.text_taken": "Another offer already has this same text.",
+  "job.field.text_edit_help": "If the source only brought a summary, paste the full description from the offer's page here and score again.",
+  "job.snippet_hint": "Adzuna only shares a summary of the description, not the full text. For the score, CV and letter to use the whole offer, paste it in “Edit details” › “Offer text” and score again."
 }

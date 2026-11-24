@@ -34,6 +34,7 @@
       {% for event in job.events | reverse %}<li class="rc-small">{{ status_icon(event.status) }}<span class="grow rc-subtle">{{ event.at | localdatetime }}</span></li>{% endfor %}
     </ol>
     {% else %}
+    {% if job.source == 'adzuna' and job.text | length < 1500 %}<p class="alerta alerta-info" role="note">{{ t('job.snippet_hint') }}</p>{% endif %}
     <section aria-label="{{ t('job.field.text') }}"><pre class="rc-offer-text">{{ job.text }}</pre></section>
     {% endif %}
   </div>
@@ -51,6 +52,12 @@
           {{ field_error(errors, field) }}
         </div>
         {% endfor %}
+        <div class="rc-field span-12">
+          <label class="rc-label" for="edit-text">{{ t('job.field.text') }}</label>
+          <textarea class="rc-textarea w-full" id="edit-text" name="text" rows="8" aria-describedby="text-help{% if errors.text %} text-error{% endif %}"{% if errors.text %} aria-invalid="true"{% endif %}>{{ job.text }}</textarea>
+          <span class="rc-hint" id="text-help">{{ t('job.field.text_edit_help') }}</span>
+          {{ field_error(errors, 'text') }}
+        </div>
         <div class="rc-form-actions span-12"><noscript><button class="rc-btn rc-btn--primary" type="submit">{{ t('job.save') }}</button></noscript><span class="rc-saved" data-saved role="status" hidden>{{ t('form.saved') }}</span></div>
       </form>
     </details>

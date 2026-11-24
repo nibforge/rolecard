@@ -87,16 +87,22 @@ def create_job(db: Session, *, text: str, url: str = "", title: str = "", compan
 
 
 def update_job(db: Session, job: Job, *, title: str, company: str, location: str,
-               url: str) -> Job | Duplicate:
+               url: str, text: str | None = None) -> Job | Duplicate:
+    """Edit the offer's fields; ``text`` replaces its text (e.g. the full description
+    pasted over a source's short snippet) and ``None`` keeps it."""
     url = _clean(url)
     ukey = url_key(url)
-    existing = find_duplicate(db, ukey, None, exclude_id=job.id)
+    text = text.strip() if text is not None else None
+    tkey = text_key(text) if text and text != job.text else None
+    existing = find_duplicate(db, ukey, tkey, exclude_id=job.id)
     if existing is not None:
         return Duplicate(existing)
     job.title, job.company, job.location = _clean(title), _clean(company), _clean(location)
     job.url, job.url_key = url or None, ukey
+    if tkey is not None:
+        job.text, job.text_key = text, tkey
     job.match_key = match_key(job.company, job.title, job.location)
-    return _commit_or_duplicate(db, job, ukey, None)
+    return _commit_or_duplicate(db, job, ukey, tkey)
 
 
 def _commit_or_duplicate(db: Session, job: Job, ukey: str | None,

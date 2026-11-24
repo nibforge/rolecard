@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 import pytest
 
 from rolecard import get_db
+from rolecard.models import Job
 from rolecard.services.jobs import (
     Duplicate,
     backfill_match_keys,
@@ -96,3 +97,15 @@ def test_backfill_fills_only_empty_match_keys(db):
     db.commit()
     assert backfill_match_keys(db) == 1
     assert (old.match_key, kept.match_key, bare.match_key) == ("acme|dev|", "custom", None)
+
+
+def test_update_replaces_the_text_and_checks_duplicates(db):
+    other = create_job(db, text=TEXT + " other")
+    job = create_job(db, text=TEXT[:150])
+    full = TEXT + " Full description pasted from the offer's page."
+    update_job(db, job, title="", company="", location="", url="", text=f"  {full} ")
+    assert job.text == full and not isinstance(create_job(db, text=full + " "), Job)
+    result = update_job(db, job, title="", company="", location="", url="", text=other.text)
+    assert isinstance(result, Duplicate) and result.job.id == other.id
+    update_job(db, job, title="T", company="", location="", url="")  # no text: kept
+    assert job.text == full

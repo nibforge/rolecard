@@ -15,7 +15,7 @@ from rolecard.logs import init_logging
 from rolecard.security import init_security
 from rolecard.services.jobs import backfill_match_keys
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 DEFAULT_PORT = 8765
 _TRANSLATED_ERRORS = (400, 404, 413, 500)

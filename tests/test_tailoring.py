@@ -85,3 +85,17 @@ def test_build_letter_adds_greeting_closing_and_accepts_offer_sources(lang, gree
     assert [b["sentences"] for b in content["blocks"]] == [["s1"], ["s2", "s3"]]
     assert [s["state"] for s in content["sentences"].values()] == [
         "sourced", "sourced", "unsourced"]
+
+
+@pytest.mark.parametrize("build", [cv_prompt, letter_prompt])
+def test_documents_are_written_in_the_first_person(build):
+    prompt = build(PROFILE, "offer", "es")
+    assert "FIRST PERSON" in prompt and "never refer to the candidate" in prompt
+
+
+def test_a_sentence_may_cite_many_sources():
+    from rolecard.ai.doc_schema import LETTER_SCHEMA
+    from rolecard.ai.schema import find_errors
+
+    sentence = {"text": "Python, SQL, Docker…", "sources": [f"skills.{i}" for i in range(12)]}
+    assert find_errors({"paragraphs": [[sentence]]}, LETTER_SCHEMA) == []

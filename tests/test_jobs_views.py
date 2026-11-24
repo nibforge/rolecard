@@ -137,7 +137,7 @@ def test_show_has_two_columns_and_history_tab(client, csrf, app, with_profile):
     assert "High fit" in page and "rc-score--lg" in page and "Acme Data seeks" in page
     assert 'href="/jobs/1?tab=history"' in page and 'aria-current="page">Description' in page
     history = client.get("/jobs/1?tab=history").get_data(as_text=True)
-    assert 'aria-current="page">History' in history and "Acme Data seeks" not in history
+    assert 'aria-current="page">History' in history and "rc-offer-text" not in history
     assert "rc-status--new" in history
     assert 'data-confirm="Delete this offer' in page and "Not prepared yet" in page
 
@@ -152,3 +152,19 @@ def test_new_job_errors_stay_next_to_the_field(client, csrf):
     resp = client.post("/jobs", data={"csrf_token": csrf, "text": "short"})
     page = resp.get_data(as_text=True)
     assert resp.status_code == 400 and 'id="text-error"' in page and "rc-hint--error" in page
+
+
+def test_edit_pastes_the_full_text_over_a_source_snippet(client, csrf, app, with_profile):
+    provider(app, [SCORE])
+    create(client, csrf)
+    with app.app_context():
+        get_db().get(Job, 1).source = "adzuna"
+        get_db().commit()
+    page = client.get("/jobs/1").get_data(as_text=True)
+    assert "Adzuna only shares a summary" in page and 'name="text"' in page
+    full = TEXT + "Full requirements: Terraform and AWS. " * 40
+    form = {"csrf_token": csrf, "title": "", "company": "", "location": "", "url": ""}
+    client.post("/jobs/1", data={**form, "text": full})
+    assert jobs(app)[0].text == full.strip()
+    assert "Adzuna only shares a summary" not in client.get("/jobs/1").get_data(as_text=True)
+    assert client.post("/jobs/1", data={**form, "text": "short"}).status_code == 400

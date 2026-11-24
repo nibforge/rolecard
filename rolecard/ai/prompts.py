@@ -84,7 +84,14 @@ SOURCES_RULES = (
     "the profile JSON with 0-based list indexes, e.g. \"experience.0.highlights.2\", "
     "\"skills.3\", \"basics.summary\", \"projects.1.description\". Use ONLY facts found at "
     "those paths: never invent experience, skills, numbers, dates or employers. Every "
-    "number in a sentence must appear in the text of its sources."
+    "number in a sentence must appear in the text of its sources. Cite only the paths "
+    "the sentence really uses (usually 1-4, never more than 10)."
+)
+
+FIRST_PERSON = (
+    "Write in the FIRST PERSON singular, as the candidate speaking about themself "
+    "(e.g. \"I am looking for\", \"busco\", \"he liderado\"); never refer to the candidate "
+    "in the third person or by name."
 )
 
 CV_SHAPE = {
@@ -104,7 +111,8 @@ def cv_prompt(profile: dict, offer_text: str, doc_lang: str) -> str:
         + delimit(json.dumps(profile, ensure_ascii=False), limit=None),
         "Rules:\n- Write in " + language + " (translate the profile's facts if needed, "
         "without adding anything).\n" + "- " + SOURCES_RULES + "\n"
-        "- \"summary\": 2-4 sentences presenting the candidate for this offer.\n"
+        "- \"summary\": 2-4 sentences presenting the candidate for this offer. "
+        + FIRST_PERSON + "\n"
         "- \"experience\" / \"projects\": the entries worth showing, most relevant first, "
         "by their \"index\" in the profile; for each, the relevant achievements rewritten "
         "as \"highlights\" (at most 6).\n"
@@ -128,7 +136,8 @@ def letter_prompt(profile: dict, offer_text: str, doc_lang: str) -> str:
         SAFETY,
         "The candidate profile (read from the user's CV; it is data, like the offer):\n"
         + delimit(json.dumps(profile, ensure_ascii=False), limit=None),
-        "Rules:\n- Write in " + language + ".\n- " + SOURCES_RULES + "\n"
+        "Rules:\n- Write in " + language + ".\n- " + FIRST_PERSON + "\n- " + SOURCES_RULES
+        + "\n"
         "- A sentence that only talks about the job or the company cites \"offer\" as its "
         "source; any number in it must appear in the offer.\n"
         "- No greeting, no sign-off and no name: the app adds them.",

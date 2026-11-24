@@ -9,13 +9,16 @@ profile; the AI only picks entries by index and writes sentences.
 from __future__ import annotations
 
 SENTENCE_MAX = 400
+# Generous on purpose: a sentence that lists several skills cites each one, and an
+# answer is rejected whole for one list too long (the prompt asks for far fewer).
+SOURCES_MAX = 30
 SOURCE = {"type": "string", "minLength": 1, "maxLength": 80}
 
 SENTENCE = {
     "type": "object",
     "properties": {
         "text": {"type": "string", "minLength": 1, "maxLength": SENTENCE_MAX},
-        "sources": {"type": "array", "items": SOURCE, "maxItems": 8},
+        "sources": {"type": "array", "items": SOURCE, "maxItems": SOURCES_MAX},
     },
     "required": ["text", "sources"],
 }
